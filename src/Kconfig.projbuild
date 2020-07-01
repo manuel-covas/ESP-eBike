@@ -1,0 +1,8 @@
+menu "ESP-eBike Configuration"
+
+    config BLE_NAME
+        string "BLE Device Name"
+        default "ESP-eBike"
+        help
+            The device name that will be advertised by the Bluetooth LE server.
+endmenu
