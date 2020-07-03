@@ -5,4 +5,63 @@ menu "ESP-eBike Configuration"
         default "ESP-eBike"
         help
             The device name that will be advertised by the Bluetooth LE server.
+
+
+    config OUT1_GPIO
+        int "Power output 1 GPIO Number"
+        default 26
+        help
+            The GPIO number of the pin to that activates the power output 1.
+
+    config OUT2_GPIO
+        int "Power output 2 GPIO Number"
+        default 27
+        help
+            The GPIO number of the pin to that activates the power output 2.
+
+
+    config THROTTLE_GPIO
+        int "Throttle GPIO Number"
+        default 36
+        help
+            The GPIO number of the pin to read the throttle analog signal from.
+
+    config MAGNET_GPIO
+        int "Magnet GPIO Number"
+        default 33
+        help
+            The GPIO number of the pin from which to count pulses from and calculate speed.
+
+    config PWM_GPIO
+        int "ESC PWM GPIO Number"
+        default 25
+        help
+            The GPIO number of the output pin for the PWM ESC control signal.
+
+
+    config BUZZER_GPIO
+        int "Buzzer GPIO Number"
+        default 39
+        help
+            The GPIO number of the pin that activates the buzzer.
+
+    config FAULT_LED_GPIO
+        int "Fault LED GPIO Number"
+        default 15
+        help
+            The GPIO number of the pin that activates the FAULT indicator led.
+
+
+    config I2C_SDA_GPIO
+        int "I2C SDA GPIO Number"
+        default 34
+        help
+            The GPIO number of the pin to use for the I2C data line.
+
+    config I2C_SCL_GPIO
+        int "I2C SCL GPIO Number"
+        default 35
+        help
+            The GPIO number of the pin to use for the I2C clock line.
+            
 endmenu
