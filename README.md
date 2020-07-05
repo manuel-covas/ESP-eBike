@@ -1,6 +1,8 @@
 # ESP-eBike
-ESP32 Software for a DIY eBike BMS and control board.
+ESP32 Firmware for a DIY eBike BMS and control board.
 
+# Project Configuration
+The default values are set according to this circuit board. Configuration: `idf.py menuconfig`
 
 # Circuit Board
 EasyEDA project: https://easyeda.com/manuel.p.covas/esp-ebike-v2
