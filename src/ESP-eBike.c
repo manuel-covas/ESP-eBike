@@ -14,7 +14,5 @@ void app_main() {
     err = eBike_nvs_init(); eBike_err_report(err);
     err = eBike_ble_init(); eBike_err_report(err);
     
-    printf("eBike BLE init:\n\
-            esp_err: %s\n\
-            eBike_err_type: %s\n", esp_err_to_name(err.esp_err), eBike_err_to_name(err.eBike_err_type));
+    printf("Done booting.\n");
 }

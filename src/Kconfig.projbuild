@@ -41,7 +41,7 @@ menu "ESP-eBike Configuration"
 
     config BUZZER_GPIO
         int "Buzzer GPIO Number"
-        default 39
+        default 12
         help
             The GPIO number of the pin that activates the buzzer.
 
