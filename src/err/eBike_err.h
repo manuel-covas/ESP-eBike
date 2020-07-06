@@ -3,11 +3,18 @@
 
 #include <esp_err.h>
 
+#define EBIKE_ERROR_BEEP_LONG_MS 500
+#define EBIKE_ERROR_BEEP_SHORT_MS 200
+
 typedef enum {
     EBIKE_NO_ERROR,
     EBIKE_NVS_INIT_ERASE_FAIL,
     EBIKE_NVS_INIT_FAIL,
     EBIKE_NVS_INIT_OPEN_FAIL,
+    EBIKE_GPIO_INIT_SET_DIRECTION_BUZZER_FAIL,
+    EBIKE_GPIO_INIT_SET_DIRECTION_LED_FAIL,
+    EBIKE_GPIO_INIT_SET_LEVEL_BUZZER_FAIL,
+    EBIKE_GPIO_INIT_SET_LEVEL_LED_FAIL,
     EBIKE_BLE_INIT_CONTROLLER_INIT_FAIL,
     EBIKE_BLE_INIT_ENABLE_CONTROLLER_FAIL,
     EBIKE_BLE_INIT_BLUEDROID_INIT_FAIL,
@@ -42,5 +49,6 @@ eBike_err_t;
 
 const char* eBike_err_to_name(eBike_err_type_t);
 void eBike_err_report(eBike_err_t err);
+void eBike_beep(uint32_t* duration_ms);
 
 #endif

@@ -1,18 +1,19 @@
+#include <sdkconfig.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <driver/gpio.h>
 #include <eBike_err.h>
-
-
-#define EBIKE_ERROR_BEEP_LONG_MS 500
-#define EBIKE_ERROR_BEEP_SHORT_MS 200
-
+#include <eBike_gpio.h>
 
 const char* eBike_err_type_enum_names[] = {
     "EBIKE_NO_ERROR",
     "EBIKE_NVS_INIT_ERASE_FAIL",
     "EBIKE_NVS_INIT_FAIL",
     "EBIKE_NVS_INIT_OPEN_FAIL",
+    "EBIKE_GPIO_INIT_SET_DIRECTION_BUZZER_FAIL",
+    "EBIKE_GPIO_INIT_SET_DIRECTION_LED_FAIL",
+    "EBIKE_GPIO_INIT_SET_LEVEL_BUZZER_FAIL",
+    "EBIKE_GPIO_INIT_SET_LEVEL_LED_FAIL",
     "EBIKE_BLE_INIT_CONTROLLER_INIT_FAIL",
     "EBIKE_BLE_INIT_ENABLE_CONTROLLER_FAIL",
     "EBIKE_BLE_INIT_BLUEDROID_INIT_FAIL",
@@ -32,10 +33,6 @@ const char* eBike_err_to_name(eBike_err_type_t err_type) {
 
 
 void eBike_err_report_task(void* err_param) {
-    gpio_set_direction(CONFIG_BUZZER_GPIO, GPIO_MODE_OUTPUT);
-    gpio_set_direction(CONFIG_FAULT_LED_GPIO, GPIO_MODE_OUTPUT);
-    gpio_set_level(CONFIG_BUZZER_GPIO, 0);
-    gpio_set_level(CONFIG_FAULT_LED_GPIO, 0);
 
     eBike_err_t err = *(eBike_err_t*) err_param;
     
@@ -49,45 +46,37 @@ void eBike_err_report_task(void* err_param) {
         printf("Reporter task error\neBike_err: %s (%i) esp_err: %s (%i)\n", eBike_err_to_name(err.eBike_err_type), err.eBike_err_type, esp_err_to_name(err.esp_err), err.esp_err);
 
         for (uint8_t i = eBike_high_beeps; i > 0; i--) {
-            gpio_set_level(CONFIG_BUZZER_GPIO, 1);
-            gpio_set_level(CONFIG_FAULT_LED_GPIO, 1);
+            eBike_gpio_toggle_fault(1);
             vTaskDelay(EBIKE_ERROR_BEEP_LONG_MS / portTICK_PERIOD_MS);
-            gpio_set_level(CONFIG_BUZZER_GPIO, 0);
-            gpio_set_level(CONFIG_FAULT_LED_GPIO, 0);
-            vTaskDelay(200 / portTICK_PERIOD_MS);
+            eBike_gpio_toggle_fault(0);
+            vTaskDelay(EBIKE_ERROR_BEEP_LONG_MS / portTICK_PERIOD_MS);
         }
 
         vTaskDelay(500 / portTICK_PERIOD_MS);
 
         for (uint8_t i = eBike_low_beeps; i > 0; i--) {
-            gpio_set_level(CONFIG_BUZZER_GPIO, 1);
-            gpio_set_level(CONFIG_FAULT_LED_GPIO, 1);
+            eBike_gpio_toggle_fault(1);
             vTaskDelay(EBIKE_ERROR_BEEP_SHORT_MS / portTICK_PERIOD_MS);
-            gpio_set_level(CONFIG_BUZZER_GPIO, 0);
-            gpio_set_level(CONFIG_FAULT_LED_GPIO, 0);
-            vTaskDelay(200 / portTICK_PERIOD_MS);
+            eBike_gpio_toggle_fault(0);
+            vTaskDelay(EBIKE_ERROR_BEEP_SHORT_MS / portTICK_PERIOD_MS);
         }
 
         vTaskDelay(1500 / portTICK_PERIOD_MS);
 
         for (uint8_t i = esp_high_beeps; i > 0; i--) {
-            gpio_set_level(CONFIG_BUZZER_GPIO, 1);
-            gpio_set_level(CONFIG_FAULT_LED_GPIO, 1);
+            eBike_gpio_toggle_fault(1);
             vTaskDelay(EBIKE_ERROR_BEEP_LONG_MS / portTICK_PERIOD_MS);
-            gpio_set_level(CONFIG_BUZZER_GPIO, 0);
-            gpio_set_level(CONFIG_FAULT_LED_GPIO, 0);
-            vTaskDelay(200 / portTICK_PERIOD_MS);
+            eBike_gpio_toggle_fault(0);
+            vTaskDelay(EBIKE_ERROR_BEEP_LONG_MS / portTICK_PERIOD_MS);
         }
 
         vTaskDelay(500 / portTICK_PERIOD_MS);
 
         for (uint8_t i = esp_low_beeps; i > 0; i--) {
-            gpio_set_level(CONFIG_BUZZER_GPIO, 1);
-            gpio_set_level(CONFIG_FAULT_LED_GPIO, 1);
+            eBike_gpio_toggle_fault(1);
             vTaskDelay(EBIKE_ERROR_BEEP_SHORT_MS / portTICK_PERIOD_MS);
-            gpio_set_level(CONFIG_BUZZER_GPIO, 0);
-            gpio_set_level(CONFIG_FAULT_LED_GPIO, 0);
-            vTaskDelay(200 / portTICK_PERIOD_MS);
+            eBike_gpio_toggle_fault(0);
+            vTaskDelay(EBIKE_ERROR_BEEP_SHORT_MS / portTICK_PERIOD_MS);
         }
 
         vTaskDelay(4000 / portTICK_PERIOD_MS);
@@ -99,4 +88,15 @@ void eBike_err_report(eBike_err_t err) {
 
     xTaskCreate(eBike_err_report_task, "Error Reporter", 2000, &err, tskIDLE_PRIORITY, NULL);
     vTaskDelete(NULL);  // Stop calling task's execution.
+}
+
+
+void eBike_beep_task(void* duration_param) {
+    eBike_gpio_toggle_fault(1);
+    vTaskDelay(*(uint32_t*) duration_param / portTICK_PERIOD_MS);
+    eBike_gpio_toggle_fault(0);
+    vTaskDelete(NULL);
+}
+void eBike_beep(uint32_t* duration_ms) {
+    xTaskCreate(eBike_beep_task, "Beeper", 2000, duration_ms, tskIDLE_PRIORITY, NULL);
 }

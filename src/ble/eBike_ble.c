@@ -1,5 +1,8 @@
 #include <sdkconfig.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 #include <eBike_err.h>
+#include <eBike_ble_io.h>
 #include <esp_bt.h>
 #include <esp_gap_ble_api.h>
 #include <esp_gatts_api.h>
@@ -8,15 +11,16 @@
 #include <esp_bt_main.h>
 
 
-#define ESP_BT_CONTROLLER_MODE ESP_BT_MODE_BLE
-#define EBIKE_BLE_MAX_CONNECTION_INTERVAL 200                       // Calculation: EBIKE_BLE_MAX_CONNECTION_INTERVAL * 1.25ms
-#define EBIKE_BLE_APPEARANCE ESP_BLE_APPEARANCE_CYCLING_COMPUTER    // Device's advertised BLE appearance
-#define EBIKE_BLE_GATTS_APP_ID 0                                    // Multiple GATTS apps can be registered
-#define EBIKE_BLE_SERVICE_16BIT_UUID 0x2926                         // BLE Service UUID
-#define EBIKE_BLE_TX_CHAR_16BIT_UUID 0xAA01                         // BLE Tx Characteristic UUID
-#define EBIKE_BLE_TX_CHAR_DESCRIPTOR_16BIT_UUID 0x2902              // BLE Tx Characteristic Descriptor UUID
-#define EBIKE_BLE_RX_CHAR_16BIT_UUID 0xAB01                         // BLE Rx Characteristic UUID
-#define EBIKE_BLE_MTU 500                                           // BLE Maximum Transfer Unit (MTU) to use
+#define  ESP_BT_CONTROLLER_MODE ESP_BT_MODE_BLE
+uint32_t EBIKE_CONNECT_BEEP_DURATION_MS = 80;
+#define  EBIKE_BLE_MAX_CONNECTION_INTERVAL 200                       // Calculation: EBIKE_BLE_MAX_CONNECTION_INTERVAL * 1.25ms
+#define  EBIKE_BLE_APPEARANCE ESP_BLE_APPEARANCE_CYCLING_COMPUTER    // Device's advertised BLE appearance
+#define  EBIKE_BLE_GATTS_APP_ID 0                                    // Multiple GATTS apps can be registered
+#define  EBIKE_BLE_SERVICE_16BIT_UUID 0x2926                         // BLE Service UUID
+#define  EBIKE_BLE_TX_CHAR_16BIT_UUID 0xAA01                         // BLE Tx Characteristic UUID
+#define  EBIKE_BLE_TX_CHAR_DESCRIPTOR_16BIT_UUID 0x2902              // BLE Tx Characteristic Descriptor UUID
+#define  EBIKE_BLE_RX_CHAR_16BIT_UUID 0xAB01                         // BLE Rx Characteristic UUID
+#define  EBIKE_BLE_MTU 500                                           // BLE Maximum Transfer Unit (MTU) to use
 
 
 esp_ble_adv_data_t advertising_data = {
@@ -66,39 +70,39 @@ esp_gatt_srvc_id_t eBike_ble_service_id = {
     }
 };
 
-esp_bt_uuid_t eBike_ble_tx_char_id = {
-    .len = ESP_UUID_LEN_16,
-    .uuid = {
-        .uuid16 = EBIKE_BLE_TX_CHAR_16BIT_UUID
-    }
-};
-esp_bt_uuid_t eBike_ble_tx_char_descriptor_id = {
-    .len = ESP_UUID_LEN_16,
-    .uuid = {
-        .uuid16 = EBIKE_BLE_TX_CHAR_DESCRIPTOR_16BIT_UUID
-    }
-};
-
 esp_bt_uuid_t eBike_ble_rx_char_id = {
     .len = ESP_UUID_LEN_16,
     .uuid = {
         .uuid16 = EBIKE_BLE_RX_CHAR_16BIT_UUID
     }
 };
+esp_attr_value_t eBike_ble_rx_char_value = {
+    .attr_max_len = ESP_GATT_MAX_ATTR_LEN,
+    .attr_len = 0,
+    .attr_value = NULL
+};
 
+esp_bt_uuid_t eBike_ble_tx_char_id = {
+    .len = ESP_UUID_LEN_16,
+    .uuid = {
+        .uuid16 = EBIKE_BLE_TX_CHAR_16BIT_UUID
+    }
+};
 esp_attr_value_t eBike_ble_tx_char_value = {
     .attr_max_len = ESP_GATT_MAX_ATTR_LEN,
     .attr_len = 0,
     .attr_value = NULL
 };
+
+esp_bt_uuid_t eBike_ble_tx_char_descriptor_id = {
+    .len = ESP_UUID_LEN_16,
+    .uuid = {
+        .uuid16 = EBIKE_BLE_TX_CHAR_DESCRIPTOR_16BIT_UUID
+    }
+};
 esp_attr_value_t eBike_ble_tx_char_descriptor_value = {
     .attr_max_len = 2,
     .attr_len = 2,
-    .attr_value = NULL
-};
-esp_attr_value_t eBike_ble_rx_char_value = {
-    .attr_max_len = ESP_GATT_MAX_ATTR_LEN,
-    .attr_len = 0,
     .attr_value = NULL
 };
 
@@ -109,15 +113,20 @@ esp_attr_control_t esp_ble_char_auto_response = {
 
 bool ble_advertising_ready = false;
 
+void eBike_check_advertising_ready() {
+    if (ble_advertising_ready) {
+        esp_ble_gap_start_advertising(&advertising_parameters);            
+    }else{
+        ble_advertising_ready = true;
+    }
+}
+
+
 void eBike_gap_callback(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param) {
     switch (event) {
     
     case ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT:
-        if (ble_advertising_ready) {
-            esp_ble_gap_start_advertising(&advertising_parameters);            
-        }else{
-            ble_advertising_ready = true;
-        }
+        eBike_check_advertising_ready();
     break;
 
     case ESP_GAP_BLE_SEC_REQ_EVT:
@@ -184,14 +193,22 @@ void eBike_gatts_callback(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, es
     break;
 
     case ESP_GATTS_START_EVT:
-        if (ble_advertising_ready) {
-            esp_ble_gap_start_advertising(&advertising_parameters);
-        }else{
-            ble_advertising_ready = true;
-        }
+        eBike_check_advertising_ready();
+    break;
+
+    case ESP_GATTS_CONNECT_EVT:
+        eBike_beep(&EBIKE_CONNECT_BEEP_DURATION_MS);
+    break;
+
+    case ESP_GATTS_MTU_EVT: ;
+        uint16_t new_mtu = param->mtu.mtu;
+        printf("[BLE] - Setting MTU to %i: %s\n", new_mtu, esp_err_to_name(esp_ble_gatt_set_local_mtu(new_mtu)));
     break;
 
     case ESP_GATTS_DISCONNECT_EVT:
+        eBike_beep(&EBIKE_CONNECT_BEEP_DURATION_MS);
+        vTaskDelay(EBIKE_CONNECT_BEEP_DURATION_MS*2 / portTICK_PERIOD_MS);
+        eBike_beep(&EBIKE_CONNECT_BEEP_DURATION_MS);
         esp_ble_gap_start_advertising(&advertising_parameters);
     break;
 
