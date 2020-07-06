@@ -98,5 +98,5 @@ void eBike_err_report(eBike_err_t err) {
     if (err.esp_err == ESP_OK) return;
 
     xTaskCreate(eBike_err_report_task, "Error Reporter", 2000, &err, tskIDLE_PRIORITY, NULL);
-    vTaskDelete(NULL);  // Stop calling task execution.
+    vTaskDelete(NULL);  // Stop calling task's execution.
 }
