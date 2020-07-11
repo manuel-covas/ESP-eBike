@@ -10,6 +10,7 @@ eBike_err_t eBike_gpio_init() {
     EBIKE_HANDLE_ERROR(gpio_set_direction(CONFIG_FAULT_LED_GPIO, GPIO_MODE_OUTPUT), EBIKE_GPIO_INIT_SET_DIRECTION_LED_FAIL, eBike_err);
     EBIKE_HANDLE_ERROR(gpio_set_level(CONFIG_BUZZER_GPIO, 0), EBIKE_GPIO_INIT_SET_LEVEL_BUZZER_FAIL, eBike_err);
     EBIKE_HANDLE_ERROR(gpio_set_level(CONFIG_FAULT_LED_GPIO, 0), EBIKE_GPIO_INIT_SET_LEVEL_LED_FAIL, eBike_err);
+eBike_clean:
     return eBike_err;
 }
 

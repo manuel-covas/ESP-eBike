@@ -19,6 +19,7 @@ eBike_err_t eBike_nvs_init() {
 
     EBIKE_HANDLE_ERROR(err, EBIKE_NVS_INIT_FAIL, eBike_err);
     EBIKE_HANDLE_ERROR(nvs_open(EBIKE_NVS_NAMESPACE, NVS_READWRITE, &eBike_nvs_handle), EBIKE_NVS_INIT_OPEN_FAIL, eBike_err);
-    
+
+eBike_clean:
     return eBike_err;
 }

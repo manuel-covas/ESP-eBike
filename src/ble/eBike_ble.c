@@ -2,6 +2,7 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <eBike_err.h>
+#include <eBIke_log.h>
 #include <eBike_ble_io.h>
 #include <esp_bt.h>
 #include <esp_gap_ble_api.h>
@@ -20,7 +21,6 @@ uint32_t EBIKE_CONNECT_BEEP_DURATION_MS = 80;
 #define  EBIKE_BLE_TX_CHAR_16BIT_UUID 0xAA01                         // BLE Tx Characteristic UUID
 #define  EBIKE_BLE_TX_CHAR_DESCRIPTOR_16BIT_UUID 0x2902              // BLE Tx Characteristic Descriptor UUID
 #define  EBIKE_BLE_RX_CHAR_16BIT_UUID 0xAB01                         // BLE Rx Characteristic UUID
-#define  EBIKE_BLE_MTU 500                                           // BLE Maximum Transfer Unit (MTU) to use
 
 
 esp_ble_adv_data_t advertising_data = {
@@ -57,6 +57,10 @@ esp_gatt_if_t gatts_interface;
 
 
 uint16_t eBike_ble_service_handle;
+uint16_t eBike_ble_connection_id;
+bool eBike_ble_connected = false;
+uint16_t eBike_ble_rx_char_handle;
+
 esp_gatt_srvc_id_t eBike_ble_service_id = {
     .is_primary = true,
     .id = {
@@ -170,6 +174,7 @@ void eBike_gatts_callback(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, es
 
     case ESP_GATTS_ADD_CHAR_EVT:
         if (param->add_char.char_uuid.uuid.uuid16 == EBIKE_BLE_RX_CHAR_16BIT_UUID) {
+            eBike_ble_rx_char_handle = param->add_char.attr_handle;
             printf("[BLE] - Starting BLE service: %s\n", esp_err_to_name(esp_ble_gatts_start_service(eBike_ble_service_handle)));
         }
         if (param->add_char.char_uuid.uuid.uuid16 == EBIKE_BLE_TX_CHAR_16BIT_UUID) {
@@ -196,13 +201,10 @@ void eBike_gatts_callback(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, es
         eBike_check_advertising_ready();
     break;
 
-    case ESP_GATTS_CONNECT_EVT:
-        eBike_beep(&EBIKE_CONNECT_BEEP_DURATION_MS);
-    break;
 
-    case ESP_GATTS_MTU_EVT: ;
-        uint16_t new_mtu = param->mtu.mtu;
-        printf("[BLE] - Setting MTU to %i: %s\n", new_mtu, esp_err_to_name(esp_ble_gatt_set_local_mtu(new_mtu)));
+    case ESP_GATTS_CONNECT_EVT:
+        param->connect.conn_id;
+        eBike_beep(&EBIKE_CONNECT_BEEP_DURATION_MS);
     break;
 
     case ESP_GATTS_DISCONNECT_EVT:
@@ -212,16 +214,34 @@ void eBike_gatts_callback(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, es
         esp_ble_gap_start_advertising(&advertising_parameters);
     break;
 
+
+    case ESP_GATTS_WRITE_EVT: ;
+        struct gatts_write_evt_param* parameters = &(param->write);
+        if (!parameters->is_prep && parameters->handle == eBike_ble_rx_char_handle) {
+            eBike_ble_io_recieve(param->write.value, param->write.len);
+        }
+    break;
+
+
+    case ESP_GATTS_MTU_EVT:
+        printf("[BLE] - Setting MTU to %i: %s\n", param->mtu.mtu, esp_err_to_name(esp_ble_gatt_set_local_mtu(param->mtu.mtu)));
+    break;
+
     default:
         printf("[BLE] - GATTS Event: %i\n", event);
     break;
     }
 }
 
+void eBike_ble_tx(uint8_t* data, uint16_t length) {
+    if ()
+    esp_ble_gatts_send_indicate(gatts_interface, )
+}
 
 
 eBike_err_t eBike_ble_init() {
     eBike_err_t eBike_err;
+    eBike_err_type_t eBike_err_type;
 
     esp_bt_controller_config_t bt_controller_config = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
     bt_controller_config.mode = ESP_BT_CONTROLLER_MODE;
@@ -236,10 +256,14 @@ eBike_err_t eBike_ble_init() {
     EBIKE_HANDLE_ERROR(esp_ble_gap_register_callback(eBike_gap_callback), EBIKE_BLE_INIT_GAP_CALLBACK_REGISTER_FAIL, eBike_err);
     EBIKE_HANDLE_ERROR(esp_ble_gatts_register_callback(eBike_gatts_callback), EBIKE_BLE_INIT_GATTS_CALLBACK_REGISTER_FAIL, eBike_err);
     EBIKE_HANDLE_ERROR(esp_ble_gatts_app_register(EBIKE_BLE_GATTS_APP_ID), EBIKE_BLE_INIT_GATTS_APP_REGISTER_FAIL, eBike_err);
-    EBIKE_HANDLE_ERROR(esp_ble_gatt_set_local_mtu(EBIKE_BLE_MTU), EBIKE_BLE_INIT_GATTS_LOCAL_MTU_SET_FAIL, eBike_err);
 
     EBIKE_HANDLE_ERROR(esp_ble_gap_set_device_name(CONFIG_BLE_NAME), EBIKE_BLE_INIT_SET_BT_NAME_FAIL, eBike_err);
     EBIKE_HANDLE_ERROR(esp_ble_gap_config_adv_data(&advertising_data), EBIKE_BLE_INIT_SET_ADV_DATA_FAIL, eBike_err);
     
+    eBike_err_type = eBike_ble_log_init().eBike_err_type;
+    if (eBike_err_type != EBIKE_OK)
+        printf("[BLE] - Failed to allocate %i bytes for BLE log buffer. (%s)\n", CONFIG_BLE_LOG_BUFFER_SIZE, eBike_err_to_name(eBike_err_type));
+
+eBike_clean:
     return eBike_err;
 }

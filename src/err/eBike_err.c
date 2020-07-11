@@ -6,7 +6,7 @@
 #include <eBike_gpio.h>
 
 const char* eBike_err_type_enum_names[] = {
-    "EBIKE_NO_ERROR",
+    "EBIKE_OK",
     "EBIKE_NVS_INIT_ERASE_FAIL",
     "EBIKE_NVS_INIT_FAIL",
     "EBIKE_NVS_INIT_OPEN_FAIL",
@@ -24,7 +24,8 @@ const char* eBike_err_type_enum_names[] = {
     "EBIKE_BLE_INIT_GATTS_LOCAL_MTU_SET_FAIL",
     "EBIKE_BLE_INIT_SET_BT_NAME_FAIL",
     "EBIKE_BLE_INIT_SET_ADV_DATA_FAIL",
-    "EBIKE_BLE_INIT_START_ADV_FAIL"
+    "EBIKE_BLE_INIT_START_ADV_FAIL",
+    "EBIKE_BLE_LOG_INIT_MALLOC_FAIL"
 };
 
 const char* eBike_err_to_name(eBike_err_type_t err_type) {
@@ -84,7 +85,7 @@ void eBike_err_report_task(void* err_param) {
 }
 
 void eBike_err_report(eBike_err_t err) {
-    if (err.esp_err == ESP_OK) return;
+    if (err.esp_err == ESP_OK && err.eBike_err_type == EBIKE_OK) return;
 
     xTaskCreate(eBike_err_report_task, "Error Reporter", 2000, &err, tskIDLE_PRIORITY, NULL);
     vTaskDelete(NULL);  // Stop calling task's execution.
