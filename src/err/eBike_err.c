@@ -25,7 +25,9 @@ const char* eBike_err_type_enum_names[] = {
     "EBIKE_BLE_INIT_SET_BT_NAME_FAIL",
     "EBIKE_BLE_INIT_SET_ADV_DATA_FAIL",
     "EBIKE_BLE_INIT_START_ADV_FAIL",
-    "EBIKE_BLE_LOG_INIT_MALLOC_FAIL"
+    "EBIKE_BLE_TX_NOT_CONNECTED",
+    "EBIKE_BLE_TX_BAD_ARGUMENTS",
+    "EBIKE_LOG_INIT_MALLOC_FAIL"
 };
 
 const char* eBike_err_to_name(eBike_err_type_t err_type) {

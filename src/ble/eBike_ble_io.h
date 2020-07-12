@@ -3,7 +3,7 @@
 
 typedef enum {
     EBIKE_COMMAND_NONE,
-    EBIKE_COMMAND_RETRIEVE_LOG
+    EBIKE_COMMAND_LOG_RETRIEVE
 }
 eBike_command_t;
 

@@ -1,7 +1,10 @@
 #include <stdio.h>
+#include <stdbool.h>
 #include <string.h>
 #include <eBike_err.h>
 #include <eBike_ble_io.h>
+#include <eBIke_log.h>
+
 
 void eBike_ble_find_command(uint8_t* data, uint16_t current_index, uint16_t length);
 uint8_t* eBike_flip_array(uint8_t* flipped_data, uint16_t length);
@@ -19,25 +22,25 @@ eBike_command_state_t command_state = {
 void eBike_ble_io_recieve(uint8_t* data, uint16_t length) {
     if (data == NULL || length < 1) return;
 
- /* uint8_t* data = eBike_flip_array(data, length);
-    if (data == NULL) {
-        printf("[BLE] - Couldn't malloc %i bytes to hold flipped message.\n", length);
-        return;
-    } */
-
     if (command_state.current_command == EBIKE_COMMAND_NONE)
         eBike_ble_find_command(data, 0, length);
-
     printf("[BLE] - Running command %i from index %i.\n", command_state.current_command, command_state.current_index);
 
+
+    bool command_done = false;
     switch (command_state.current_command) {
 
-        case EBIKE_COMMAND_RETRIEVE_LOG:
-            
+        case EBIKE_COMMAND_LOG_RETRIEVE:
+            command_done = eBike_log_send();
         break;
     
         default:
         break;
+    }
+
+    if (command_done) {
+        command_state.current_command = EBIKE_COMMAND_NONE;
+        command_state.current_index = 0;
     }
 }
 

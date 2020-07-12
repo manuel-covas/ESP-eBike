@@ -65,7 +65,7 @@ menu "ESP-eBike Configuration"
             The GPIO number of the pin to use for the I2C clock line.
 
 
-    config BLE_LOG_BUFFER_SIZE
+    config EBIKE_LOG_BUFFER_SIZE
         int "BLE Log Buffer Size"
         default 2048
         help

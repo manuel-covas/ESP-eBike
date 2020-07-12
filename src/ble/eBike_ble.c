@@ -56,10 +56,10 @@ esp_ble_adv_params_t advertising_parameters = {
 esp_gatt_if_t gatts_interface;
 
 
+bool eBike_ble_connected = false;
 uint16_t eBike_ble_service_handle;
 uint16_t eBike_ble_connection_id;
-bool eBike_ble_connected = false;
-uint16_t eBike_ble_rx_char_handle;
+uint16_t eBike_ble_rx_char_handle, eBike_ble_tx_char_handle;
 
 esp_gatt_srvc_id_t eBike_ble_service_id = {
     .is_primary = true,
@@ -178,6 +178,7 @@ void eBike_gatts_callback(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, es
             printf("[BLE] - Starting BLE service: %s\n", esp_err_to_name(esp_ble_gatts_start_service(eBike_ble_service_handle)));
         }
         if (param->add_char.char_uuid.uuid.uuid16 == EBIKE_BLE_TX_CHAR_16BIT_UUID) {
+            eBike_ble_tx_char_handle = param->add_char.attr_handle;
             printf("[BLE] - Adding BLE TX characteristic descriptor: %s\n", esp_err_to_name(esp_ble_gatts_add_char_descr(eBike_ble_service_handle,
                                                                                                                         &eBike_ble_tx_char_descriptor_id,
                                                                                                                         ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
@@ -203,11 +204,13 @@ void eBike_gatts_callback(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, es
 
 
     case ESP_GATTS_CONNECT_EVT:
-        param->connect.conn_id;
+        eBike_ble_connection_id = param->connect.conn_id;
+        eBike_ble_connected = true;
         eBike_beep(&EBIKE_CONNECT_BEEP_DURATION_MS);
     break;
 
     case ESP_GATTS_DISCONNECT_EVT:
+        eBike_ble_connected = false;
         eBike_beep(&EBIKE_CONNECT_BEEP_DURATION_MS);
         vTaskDelay(EBIKE_CONNECT_BEEP_DURATION_MS*2 / portTICK_PERIOD_MS);
         eBike_beep(&EBIKE_CONNECT_BEEP_DURATION_MS);
@@ -233,9 +236,23 @@ void eBike_gatts_callback(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, es
     }
 }
 
-void eBike_ble_tx(uint8_t* data, uint16_t length) {
-    if ()
-    esp_ble_gatts_send_indicate(gatts_interface, )
+
+eBike_err_t eBike_ble_tx(uint8_t* data, uint16_t length) {
+    eBike_err_t eBike_err;
+
+    if (!eBike_ble_connected) {
+        eBike_err.eBike_err_type = EBIKE_BLE_TX_NOT_CONNECTED;
+        eBike_err.esp_err = ESP_OK;
+        return eBike_err;
+    }else if (data == NULL || length < 1) {
+        eBike_err.eBike_err_type = EBIKE_BLE_TX_BAD_ARGUMENTS;
+        eBike_err.esp_err = ESP_OK;
+    }else{
+        eBike_err.eBike_err_type = EBIKE_OK;
+        eBike_err.esp_err = esp_ble_gatts_send_indicate(gatts_interface, eBike_ble_connection_id, eBike_ble_tx_char_handle, length, data, true);
+    }
+
+    return eBike_err;
 }
 
 
@@ -260,9 +277,9 @@ eBike_err_t eBike_ble_init() {
     EBIKE_HANDLE_ERROR(esp_ble_gap_set_device_name(CONFIG_BLE_NAME), EBIKE_BLE_INIT_SET_BT_NAME_FAIL, eBike_err);
     EBIKE_HANDLE_ERROR(esp_ble_gap_config_adv_data(&advertising_data), EBIKE_BLE_INIT_SET_ADV_DATA_FAIL, eBike_err);
     
-    eBike_err_type = eBike_ble_log_init().eBike_err_type;
+    eBike_err_type = eBike_log_init().eBike_err_type;
     if (eBike_err_type != EBIKE_OK)
-        printf("[BLE] - Failed to allocate %i bytes for BLE log buffer. (%s)\n", CONFIG_BLE_LOG_BUFFER_SIZE, eBike_err_to_name(eBike_err_type));
+        printf("[BLE] - Failed to allocate %i bytes for BLE log buffer. (%s)\n", CONFIG_EBIKE_LOG_BUFFER_SIZE, eBike_err_to_name(eBike_err_type));
 
 eBike_clean:
     return eBike_err;
