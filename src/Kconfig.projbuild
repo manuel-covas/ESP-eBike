@@ -6,6 +6,12 @@ menu "ESP-eBike Configuration"
         help
             The device name that will be advertised by the Bluetooth LE server.
 
+    config AUTH_SHARED_SECRET
+        hex "Authentication Shared Secret"
+        default "a0935cec53ac25295f1bca737a30f8da"
+        help
+            The shared secret used for authentication.
+
 
     config OUT1_GPIO
         int "Power output 1 GPIO Number"

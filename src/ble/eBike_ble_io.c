@@ -33,6 +33,8 @@ void eBike_ble_io_recieve(uint8_t* data, uint16_t length) {
         case EBIKE_COMMAND_LOG_RETRIEVE:
             command_done = eBike_log_send();
         break;
+
+        
     
         default:
         break;

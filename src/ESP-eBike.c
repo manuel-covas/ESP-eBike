@@ -7,7 +7,8 @@
 #include <eBike_nvs.h>
 #include <eBike_gpio.h>
 #include <eBike_ble.h>
-#include <eBIke_log.h>
+#include <eBike_log.h>
+#include <mbedtls/sha256.h>
 
 
 void logger_task(void* err_param) {
@@ -32,6 +33,12 @@ void app_main() {
     err = eBike_gpio_init(); eBike_err_report(err);
     err = eBike_ble_init();  eBike_err_report(err);
     
+    char* input = "Hello World";
+    char* output = calloc(32, 1);
+    eBike_log_add("[Auth] - Calculating hash of 'Hello World' with secret.\n", 56);
+
+    mbedtls_sha256();
+
     xTaskCreate(logger_task, "Logger Task", 2000, NULL, tskIDLE_PRIORITY, NULL);
     printf("Done booting.\n");
 }
