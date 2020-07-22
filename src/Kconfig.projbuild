@@ -6,11 +6,18 @@ menu "ESP-eBike Configuration"
         help
             The device name that will be advertised by the Bluetooth LE server.
 
-    config AUTH_SHARED_SECRET
-        hex "Authentication Shared Secret"
-        default "a0935cec53ac25295f1bca737a30f8da"
+
+    config AUTH_RSA_PUBLIC_KEY
+        string "Authentication RSA Public Key"
+        default "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA5BA8puOFPRgCBzO9+0rZmiT3w4NKT2alNBnrProUj9CIDMLS6AXlTyk9dheU1fbe1AywE7PZ0EO7WaI0Tf4QTRDOim02VFtK1BUeRjDHrerz3PI6u2N/75u2xwfVX27OOQiF4lpvUy8mOTgeE+YLRb9Be7qtVOjFBFslxTv7YrBab1aRrLWC2QrwFbwksWMCoMMV/8+GayRNA7ynMdyeLENJF51y2rnbKnQOaFm9W8FW4/Nao0hkY6bLb0M5SGbRhlPm+tSu/SJ/95WMDwrHOvA67Wn17dYuzUaLt27Qt0Uyh1+oZJXxfKIjHW1ABZluZqRoKmYx18qeIAJMtGDK2wIDAQAB"
         help
-            The shared secret used for authentication.
+            The RSA public key used for authentication.
+
+    config EBIKE_AUTH_CHALLENGE_LENGTH
+        int "Crypto Challenge Length"
+        default 64
+        help
+            The amount of random bytes to use for the crypto challenge.
 
 
     config OUT1_GPIO
@@ -58,15 +65,27 @@ menu "ESP-eBike Configuration"
             The GPIO number of the pin that activates the FAULT indicator led.
 
 
+    config I2C_CLOCK_FREQUENCY
+        int "I2C Clock Frequency"
+        default 50000
+        help
+            The frequency to clock the I2C line at.
+
+    config I2C_SLAVE_ADDRESS
+        hex "I2C Slave Address"
+        default 0x08
+        help
+            The slave address of the I2C connected BQ76930 chip.
+
     config I2C_SDA_GPIO
         int "I2C SDA GPIO Number"
-        default 34
+        default 14
         help
             The GPIO number of the pin to use for the I2C data line.
 
     config I2C_SCL_GPIO
         int "I2C SCL GPIO Number"
-        default 35
+        default 13
         help
             The GPIO number of the pin to use for the I2C clock line.
 

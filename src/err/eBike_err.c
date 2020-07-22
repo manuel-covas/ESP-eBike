@@ -1,8 +1,10 @@
 #include <sdkconfig.h>
+#include <string.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <driver/gpio.h>
 #include <eBike_err.h>
+#include <eBike_log.h>
 #include <eBike_gpio.h>
 
 const char* eBike_err_type_enum_names[] = {
@@ -27,7 +29,13 @@ const char* eBike_err_type_enum_names[] = {
     "EBIKE_BLE_INIT_START_ADV_FAIL",
     "EBIKE_BLE_TX_NOT_CONNECTED",
     "EBIKE_BLE_TX_BAD_ARGUMENTS",
-    "EBIKE_LOG_INIT_MALLOC_FAIL"
+    "EBIKE_LOG_INIT_MALLOC_FAIL",
+    "EBIKE_AUTH_INIT_MALLOC_FAIL",
+    "EBIKE_AUTH_INIT_PARSE_KEY_FAIL",
+    "EBIKE_BMS_INIT_I2C_CONFIG_FAIL",
+    "EBIKE_BMS_INIT_I2C_INSTALL_FAIL",
+    "EBIKE_BMS_I2C_BUILD_COMMAND_FAIL",
+    "EBIKE_BMS_I2C_COMMAND_FAIL"
 };
 
 const char* eBike_err_to_name(eBike_err_type_t err_type) {
@@ -44,9 +52,14 @@ void eBike_err_report_task(void* err_param) {
     uint8_t esp_high_beeps   = err.esp_err/10;
     uint8_t esp_low_beeps    = err.esp_err%10;
 
-    while (true) {
+    char* log_message = calloc(1000, 1);
 
-        printf("Reporter task error\neBike_err: %s (%i) esp_err: %s (%i)\n", eBike_err_to_name(err.eBike_err_type), err.eBike_err_type, esp_err_to_name(err.esp_err), err.esp_err);
+    sprintf(log_message, "[System] - Error state: eBike_err: %s (%i) esp_err: %s (%i)\n", eBike_err_to_name(err.eBike_err_type), err.eBike_err_type, esp_err_to_name(err.esp_err), err.esp_err);
+    eBike_log_add(log_message, strlen(log_message));
+    
+    while (true) {
+        
+        printf(log_message);
 
         for (uint8_t i = eBike_high_beeps; i > 0; i--) {
             eBike_gpio_toggle_fault(1);

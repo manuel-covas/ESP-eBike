@@ -2,7 +2,7 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <eBike_err.h>
-#include <eBIke_log.h>
+#include <eBike_log.h>
 #include <eBike_ble_io.h>
 #include <esp_bt.h>
 #include <esp_gap_ble_api.h>
@@ -206,6 +206,7 @@ void eBike_gatts_callback(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, es
     case ESP_GATTS_CONNECT_EVT:
         eBike_ble_connection_id = param->connect.conn_id;
         eBike_ble_connected = true;
+        eBike_ble_release_command_lock();
         eBike_beep(&EBIKE_CONNECT_BEEP_DURATION_MS);
     break;
 
@@ -221,7 +222,7 @@ void eBike_gatts_callback(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, es
     case ESP_GATTS_WRITE_EVT: ;
         struct gatts_write_evt_param* parameters = &(param->write);
         if (!parameters->is_prep && parameters->handle == eBike_ble_rx_char_handle) {
-            eBike_ble_io_recieve(param->write.value, param->write.len);
+            eBike_ble_io_recieve(parameters);
         }
     break;
 
