@@ -15,4 +15,6 @@ bq76930_register_t;
 eBike_err_t bq76930_init();
 eBike_err_t bq76930_read_register(bq76930_register_t register_address, uint8_t* buffer, size_t length);
 
+uint8_t crc8(uint8_t* ptr, uint8_t len);
+
 #endif
