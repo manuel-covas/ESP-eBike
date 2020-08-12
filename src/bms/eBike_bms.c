@@ -14,8 +14,11 @@ eBike_err_t eBike_bms_init() {
 
     char* log_message = calloc(100, 1);
     int length = sprintf(log_message, "[BMS] - sys_stat: %02X crc: %02X\n", *sys_stat_response, *(sys_stat_response+1));
-
     eBike_log_add(log_message, length);
     free(log_message);
+
+    uint8_t checksum = crc8(sys_stat_response, 1);
+    printf("[BMS] - Checksum of response byte: %02X\n", checksum);
+
     return eBike_err;
 }
