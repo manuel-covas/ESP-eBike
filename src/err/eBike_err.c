@@ -32,7 +32,8 @@ const char* eBike_err_type_enum_names[] = {
     "EBIKE_BMS_INIT_I2C_CONFIG_FAIL",
     "EBIKE_BMS_INIT_I2C_INSTALL_FAIL",
     "EBIKE_BMS_I2C_BUILD_COMMAND_FAIL",
-    "EBIKE_BMS_I2C_COMMAND_FAIL"
+    "EBIKE_BMS_I2C_COMMAND_FAIL",
+    "EBIKE_BMS_I2C_CRC_MISMATCH"
 };
 
 const char* eBike_err_to_name(eBike_err_type_t err_type) {
