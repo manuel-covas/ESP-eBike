@@ -65,6 +65,12 @@ menu "ESP-eBike Configuration"
             The GPIO number of the pin that activates the FAULT indicator led.
 
 
+    config BQ76930_INTERNAL_TEMPERATURE
+        boolean "BQ76930 Use Internal Die Temperature"
+        default y
+        help
+            Wether to use the internal die's temperature readings or an external thermistor.
+
     config I2C_CLOCK_FREQUENCY
         int "I2C Clock Frequency"
         default 50000

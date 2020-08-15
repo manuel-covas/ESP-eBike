@@ -25,11 +25,33 @@ typedef struct bq76930_sys_stat_t {
     bool overcurrent_discharge;
 } bq76930_sys_stat_t;
 
+typedef struct bq76930_sys_ctrl1_t {
+    bool load_present;
+    bool adc_enable;
+    bool use_external_temp;
+    bool shutdown_a;
+    bool shutdown_b;
+} bq76930_sys_ctrl1_t;
+
+typedef struct bq76930_sys_ctrl2_t {
+    bool disable_delays;
+    bool coulomb_counter_enable;
+    bool coulomb_counter_oneshot;
+    bool discharge_on;
+    bool charge_on;
+} bq76930_sys_ctrl2_t;
+
+
 eBike_err_t bq76930_init();
 
-eBike_err_t bq76930_read_sys_stat(bq76930_sys_stat_t* sys_stat);
+eBike_err_t bq76930_read_sys_stat(bq76930_sys_stat_t* sys_stat_ptr);
+eBike_err_t bq76930_write_sys_stat(bq76930_sys_stat_t sys_stat);
 
-eBike_err_t bq76930_read_register(bq76930_register_t register_address, uint8_t* buffer, size_t length);
+eBike_err_t bq76930_read_sys_ctrl1(bq76930_sys_ctrl1_t* sys_ctrl1_ptr);
+eBike_err_t bq76930_write_sys_ctrl1(bq76930_sys_ctrl1_t sys_ctrl1);
+
+eBike_err_t bq76930_read_sys_ctrl2(bq76930_sys_ctrl2_t* sys_ctrl2_ptr);
+eBike_err_t bq76930_write_sys_ctrl2(bq76930_sys_ctrl2_t sys_ctrl2);
 
 uint8_t crc8(uint8_t* ptr, uint8_t len);
 
