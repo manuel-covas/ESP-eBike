@@ -102,6 +102,32 @@ uint8_t bq76930_serialize_sys_ctrl2(bq76930_sys_ctrl2_t sys_ctrl2) {
 }
 
 
+void* bq76930_parse_register(bq76930_register_t register_address, uint8_t byte) {
+    switch (register_address)
+    {
+        case BQ76930_SYS_STAT:
+            bq76930_sys_stat_t result = {
+                .coulomb_counter_ready =  ((1 << 7) & byte) > 0,
+                .device_xready =          ((1 << 5) & byte) > 0,
+                .override_alert =         ((1 << 4) & byte) > 0,
+                .undervoltage =           ((1 << 3) & byte) > 0,
+                .overvoltage =            ((1 << 2) & byte) > 0,
+                .shortcircuit_discharge = ((1 << 1) & byte) > 0,
+                .overcurrent_discharge =  ((1 << 0) & byte) > 0
+            };
+            return &result;
+        break;
+
+        case BQ76930_CELLBAL:
+            
+        break;
+
+    default:
+        break;
+    }
+}
+
+
 eBike_err_t bq76930_read_register(bq76930_register_t register_address, uint8_t* buffer, size_t length) {
     eBike_err_t eBike_err;
     

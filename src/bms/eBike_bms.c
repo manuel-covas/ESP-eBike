@@ -24,7 +24,6 @@ eBike_err_t eBike_bms_init() {
         eBike_err = bq76930_write_sys_stat(sys_stat_clear); if (eBike_err.eBike_err_type != EBIKE_OK) return eBike_err;
     }
 
-
     bq76930_sys_ctrl1_t sys_ctrl1 = {
         .adc_enable = true,
         .use_external_temp = !CONFIG_BQ76930_INTERNAL_TEMPERATURE
