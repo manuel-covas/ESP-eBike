@@ -81,6 +81,58 @@ typedef struct bq76930_cc_cfg_t {
     uint8_t coulomb_counter_config:6;
 } bq76930_uv_trip_t;
 
+typedef struct bq76930_cell_voltages_t {
+    uint8_t VC1_HI:6;
+    uint8_t reserved_1:2;
+    uint8_t VC1_LO;
+    uint8_t VC2_HI:6;
+    uint8_t reserved_2:2;
+    uint8_t VC2_LO;
+    uint8_t VC3_HI:6;
+    uint8_t reserved_3:2;
+    uint8_t VC3_LO;
+    uint8_t VC4_HI:6;
+    uint8_t reserved_4:2;
+    uint8_t VC4_LO;
+    uint8_t VC5_HI:6;
+    uint8_t reserved_5:2;
+    uint8_t VC5_LO;
+    uint8_t VC6_HI:6;
+    uint8_t reserved_6:2;
+    uint8_t VC6_LO;
+    uint8_t VC7_HI:6;
+    uint8_t reserved_7:2;
+    uint8_t VC7_LO;
+    uint8_t VC8_HI:6;
+    uint8_t reserved_8:2;
+    uint8_t VC8_LO;
+    uint8_t VC9_HI:6;
+    uint8_t reserved_9:2;
+    uint8_t VC9_LO;
+    uint8_t VC10_HI:6;
+    uint8_t reserved_10:2;
+    uint8_t VC10_LO;
+} bq76930_cell_voltages_t;
+
+typedef struct bq76930_bat_voltage_t {
+    uint16_t battery_voltge;
+} bq76930_bat_voltage_t;
+
+typedef struct bq76930_ts1_t {
+    uint8_t TS1_HI:6;
+    uint8_t TS1_LO;
+} bq76930_ts1_t;
+
+typedef struct bq76930_ts2_t {
+    uint8_t TS2_HI:6;
+    uint8_t TS2_LO;
+} bq76930_ts2_t;
+
+typedef struct bq76930_coulomb_counter_t {
+    uint16_t cc_reading;
+} bq76930_coulomb_counter_t;
+
+
 
 eBike_err_t bq76930_init();
 
