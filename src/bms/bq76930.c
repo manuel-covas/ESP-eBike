@@ -6,9 +6,6 @@
 #include <eBike_log.h>
 
 
-uint8_t crc8(uint8_t* ptr, uint8_t len);
-
-
 eBike_err_t bq76930_init() {
     eBike_err_t eBike_err;
     
@@ -31,77 +28,8 @@ eBike_clean:
 }
 
 
-bq76930_sys_stat_t bq76930_parse_sys_stat(uint8_t byte) {
-    bq76930_sys_stat_t result = {
-        .coulomb_counter_ready =  ((1 << 7) & byte) > 0,
-        .device_xready =          ((1 << 5) & byte) > 0,
-        .override_alert =         ((1 << 4) & byte) > 0,
-        .undervoltage =           ((1 << 3) & byte) > 0,
-        .overvoltage =            ((1 << 2) & byte) > 0,
-        .shortcircuit_discharge = ((1 << 1) & byte) > 0,
-        .overcurrent_discharge =  ((1 << 0) & byte) > 0
-    };
-    return result;
-}
-uint8_t bq76930_serialize_sys_stat(bq76930_sys_stat_t sys_stat) {
-    uint8_t result = 0;
 
-    if (sys_stat.coulomb_counter_ready)  result = result | (1 << 7);
-    if (sys_stat.device_xready)          result = result | (1 << 5);
-    if (sys_stat.override_alert)         result = result | (1 << 4);
-    if (sys_stat.undervoltage)           result = result | (1 << 3);
-    if (sys_stat.overvoltage)            result = result | (1 << 2);
-    if (sys_stat.shortcircuit_discharge) result = result | (1 << 1);
-    if (sys_stat.overcurrent_discharge)  result = result | (1 << 0);
-
-    return result;
-}
-
-bq76930_sys_ctrl1_t bq76930_parse_sys_ctrl1(uint8_t byte) {
-    bq76930_sys_ctrl1_t result = {
-        .load_present =      ((1 << 7) & byte) > 0,
-        .adc_enable =        ((1 << 4) & byte) > 0,
-        .use_external_temp = ((1 << 3) & byte) > 0,
-        .shutdown_a =        ((1 << 1) & byte) > 0,
-        .shutdown_b =        ((1 << 0) & byte) > 0
-    };
-    return result;
-}
-uint8_t bq76930_serialize_sys_ctrl1(bq76930_sys_ctrl1_t sys_ctrl1) {
-    uint8_t result = 0;
-
-    if (sys_ctrl1.load_present)      result = result | (1 << 7);
-    if (sys_ctrl1.adc_enable)        result = result | (1 << 4);
-    if (sys_ctrl1.use_external_temp) result = result | (1 << 3);
-    if (sys_ctrl1.shutdown_a)        result = result | (1 << 1);
-    if (sys_ctrl1.shutdown_b)        result = result | (1 << 0);
-
-    return result;
-}
-
-bq76930_sys_ctrl2_t bq76930_parse_sys_ctrl2(uint8_t byte) {
-    bq76930_sys_ctrl2_t result = {
-        .disable_delays =          ((1 << 7) & byte) > 0,
-        .coulomb_counter_enable =  ((1 << 6) & byte) > 0,
-        .coulomb_counter_oneshot = ((1 << 5) & byte) > 0,
-        .discharge_on =            ((1 << 1) & byte) > 0,
-        .charge_on =               ((1 << 0) & byte) > 0
-    };
-    return result;
-}
-uint8_t bq76930_serialize_sys_ctrl2(bq76930_sys_ctrl2_t sys_ctrl2) {
-    uint8_t result = 0;
-
-    if (sys_ctrl2.disable_delays)          result = result | (1 << 7);
-    if (sys_ctrl2.coulomb_counter_enable)  result = result | (1 << 6);
-    if (sys_ctrl2.coulomb_counter_oneshot) result = result | (1 << 5);
-    if (sys_ctrl2.discharge_on)            result = result | (1 << 1);
-    if (sys_ctrl2.charge_on)               result = result | (1 << 0);
-
-    return result;
-}
-
-
+/*
 void* bq76930_parse_register(bq76930_register_t register_address, uint8_t byte) {
     switch (register_address)
     {
@@ -125,10 +53,10 @@ void* bq76930_parse_register(bq76930_register_t register_address, uint8_t byte) 
     default:
         break;
     }
-}
+} */
 
 
-eBike_err_t bq76930_read_register(bq76930_register_t register_address, uint8_t* buffer, size_t length) {
+eBike_err_t bq76930_read_bytes(bq76930_register_t register_address, uint8_t* buffer, size_t length) {
     eBike_err_t eBike_err;
     
     i2c_cmd_handle_t i2c_command;
@@ -153,7 +81,7 @@ eBike_clean:
     i2c_cmd_link_delete(i2c_command);
     return eBike_err;
 }
-eBike_err_t bq76930_write_register(bq76930_register_t register_address, uint8_t* buffer, size_t length) {
+eBike_err_t bq76930_write_bytes(bq76930_register_t register_address, uint8_t* buffer, size_t length) {
     eBike_err_t eBike_err;
     
     i2c_cmd_handle_t i2c_command;
@@ -173,21 +101,32 @@ eBike_clean:
 }
 
 
-eBike_err_t bq76930_read_sys_stat(bq76930_sys_stat_t* sys_stat_ptr) {
-    eBike_err_t eBike_err;
+
+eBike_err_t bq76930_read_register(bq76930_register_t register_address, void* pointer, bq76930_sys_stat_t* sys_stat_ptr) {
     
+    uint8_t length = bq76930_sizeof_register(register_address) * 2;
     uint8_t address_byte = (CONFIG_I2C_SLAVE_ADDRESS << 1) | I2C_MASTER_READ;
-    
+
+    uint8_t* response = (uint8_t*) malloc(length + 1);
+    response[0] = address_byte;
+
+
     int i = 0;
     while (true) {
+        eBike_err_t eBike_err;
 
-        uint8_t* response = calloc(2, 1);
-        eBike_err = bq76930_read_register(BQ76930_SYS_STAT, response, 2);
+        memset(response + 1, 0, length);
+        eBike_err = bq76930_read_bytes(register_address, response + 1, length);
 
         if (eBike_err.eBike_err_type != EBIKE_OK) {
-            char* log_message = calloc(1000, 1);
-            sprintf(log_message, "[BMS] - I2C read SYS_STAT failed: eBike_err: %s (%i) esp_err: %s (%i)\n"
-                                 "        Attempt: %i\n", eBike_err_to_name(eBike_err.eBike_err_type), eBike_err.eBike_err_type, esp_err_to_name(eBike_err.esp_err), eBike_err.esp_err, i + 1);
+            char* log_message = (char*) calloc(1000, 1);
+            sprintf(log_message, "[BMS] - I2C read %s failed: eBike_err: %s (%i) esp_err: %s (%i)\n"
+                                 "        Attempt: %i\n", bq76930_register_to_name(register_address),
+                                                          eBike_err_to_name(eBike_err.eBike_err_type),
+                                                          eBike_err.eBike_err_type,
+                                                          esp_err_to_name(eBike_err.esp_err),
+                                                          eBike_err.esp_err,
+                                                          i + 1);
             eBike_log_add(log_message, strlen(log_message));
             free(log_message);
         }else{
@@ -211,7 +150,8 @@ eBike_err_t bq76930_read_sys_stat(bq76930_sys_stat_t* sys_stat_ptr) {
             }
         }
 
-        free(response);
+        
+        
         if (++i > BQ76930_I2C_RETRIES) return eBike_err;
     }
 }
@@ -381,27 +321,4 @@ eBike_err_t bq76930_write_sys_ctrl2(bq76930_sys_ctrl2_t sys_ctrl2) {
 
         if (++i > BQ76930_I2C_RETRIES) return eBike_err;
     }
-}
-
-
-
-uint8_t crc8(uint8_t* ptr, uint8_t len) {
-    uint8_t key = 0x07;
-	uint8_t i;
-	uint8_t crc=0;
-
-	while(len--!=0) {
-		for(i=0x80; i!=0; i/=2) {
-			if((crc & 0x80) != 0) {
-				crc *= 2;
-				crc ^= key;
-			}else{
-				crc *= 2;
-            }
-
-			if((*ptr & i)!=0) crc ^= key;
-		}
-        ptr++;
-	}
-    return(crc);
 }
