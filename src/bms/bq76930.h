@@ -124,25 +124,6 @@ uint8_t bq76930_sizeof_register(bq76930_register_t register_address) {
 }
 
 
-uint8_t crc8(uint8_t* ptr, uint8_t len) {
-    uint8_t key = 0x07;
-	uint8_t i;
-	uint8_t crc=0;
-
-	while(len--!=0) {
-		for(i=0x80; i!=0; i/=2) {
-			if((crc & 0x80) != 0) {
-				crc *= 2;
-				crc ^= key;
-			}else{
-				crc *= 2;
-            }
-			if((*ptr & i)!=0) crc ^= key;
-		} ptr++;
-	} return(crc);
-}
-
-
 typedef struct bq76930_sys_stat_t {
     bool overcurrent_discharge:1;
     bool shortcircuit_discharge:1;
@@ -271,8 +252,26 @@ typedef struct bq76930_adc_offset_t {
     int8_t adc_offset;
 } bq76930_adc_offset_t;
 
-eBike_err_t bq76930_init();
 
-uint8_t crc8(uint8_t* ptr, uint8_t len);
+eBike_err_t bq76930_init();
+eBike_err_t bq76930_read_register(bq76930_register_t register_address, uint8_t* pointer, bq76930_sys_stat_t* sys_stat_ptr);
+
+uint8_t crc8(uint8_t* ptr, uint8_t len) {
+    uint8_t key = 0x07;
+	uint8_t i;
+	uint8_t crc=0;
+
+	while(len--!=0) {
+		for(i=0x80; i!=0; i/=2) {
+			if((crc & 0x80) != 0) {
+				crc *= 2;
+				crc ^= key;
+			}else{
+				crc *= 2;
+            }
+			if((*ptr & i)!=0) crc ^= key;
+		} ptr++;
+	} return(crc);
+}
 
 #endif
