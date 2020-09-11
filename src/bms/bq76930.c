@@ -147,7 +147,6 @@ loop_end:
 }
 
 eBike_err_t bq76930_write_register(bq76930_register_t register_address, uint8_t* pointer) {
-    eBike_err_t eBike_err;
     
     uint8_t length = bq76930_sizeof_register(register_address) * 2;
     uint8_t address_byte = (CONFIG_I2C_SLAVE_ADDRESS << 1) | I2C_MASTER_WRITE;
@@ -191,11 +190,129 @@ eBike_err_t bq76930_write_register(bq76930_register_t register_address, uint8_t*
 
             attempt = BQ76930_I2C_RETRIES;
         }
-
-loop_end:
+        
         if (++attempt > BQ76930_I2C_RETRIES) {
             free(message);
             return eBike_err;
         }
     }
+}
+
+
+const char* bq76930_register_to_name(bq76930_register_t register_address) {
+    switch (register_address) {
+
+    case BQ76930_SYS_STAT:
+        return "BQ76930_SYS_STAT";
+
+    case BQ76930_CELLBAL:
+        return "BQ76930_CELLBAL";
+
+    case BQ76930_SYS_CTRL:
+        return "BQ76930_SYS_CTRL";
+
+    case BQ76930_PROTECT:
+        return "BQ76930_PROTECT";
+
+    case BQ76930_OV_UV_TRIP:
+        return "BQ76930_OV_UV_TRIP";
+
+    case BQ76930_CC_CFG:
+        return "BQ76930_CC_CFG";
+
+    case BQ76930_CELL_VOLTAGES:
+        return "BQ76930_CELL_VOLTAGES";
+
+    case BQ76930_BAT_VOLTAGE:
+        return "BQ76930_BAT_VOLTAGE";
+
+    case BQ76930_TS1:
+        return "BQ76930_TS1";
+
+    case BQ76930_TS2:
+        return "BQ76930_TS2";
+
+    case BQ76930_COULOMB_COUNTER:
+        return "BQ76930_COULOMB_COUNTER";
+
+    case BQ76930_ADC_GAIN_1:
+        return "BQ76930_ADC_GAIN_1";
+
+    case BQ76930_ADC_OFFSET:
+        return "BQ76930_ADC_OFFSET";
+
+    case BQ76930_ADC_GAIN_2:
+        return "BQ76930_ADC_GAIN_2";
+
+    default:
+        return "UNKNOWN_REGISTER";
+    }
+}
+
+uint8_t bq76930_sizeof_register(bq76930_register_t register_address) {
+    switch (register_address) {
+
+    case BQ76930_SYS_STAT:
+        return sizeof(bq76930_sys_stat_t);
+
+    case BQ76930_CELLBAL:
+        return sizeof(bq76930_cellbal_t);
+
+    case BQ76930_SYS_CTRL:
+        return sizeof(bq76930_sys_ctrl_t);
+
+    case BQ76930_PROTECT:
+        return sizeof(bq76930_protect_t);
+
+    case BQ76930_OV_UV_TRIP:
+        return sizeof(bq76930_ov_uv_trip_t);
+
+    case BQ76930_CC_CFG:
+        return sizeof(bq76930_cc_cfg_t);
+
+    case BQ76930_CELL_VOLTAGES:
+        return sizeof(bq76930_cell_voltages_t);
+
+    case BQ76930_BAT_VOLTAGE:
+        return sizeof(bq76930_bat_voltage_t);
+
+    case BQ76930_TS1:
+        return sizeof(bq76930_ts1_t);
+
+    case BQ76930_TS2:
+        return sizeof(bq76930_ts2_t);
+
+    case BQ76930_COULOMB_COUNTER:
+        return sizeof(bq76930_coulomb_counter_t);
+
+    case BQ76930_ADC_GAIN_1:
+        return sizeof(bq76930_adc_gain_1_t);
+
+    case BQ76930_ADC_OFFSET:
+        return sizeof(bq76930_adc_offset_t);
+
+    case BQ76930_ADC_GAIN_2:
+        return sizeof(bq76930_adc_gain2_t);
+
+    default:
+        return 0;
+    }
+}
+
+uint8_t crc8(uint8_t* ptr, uint8_t len) {
+    uint8_t key = 0x07;
+	uint8_t i;
+	uint8_t crc=0;
+
+	while(len--!=0) {
+		for(i=0x80; i!=0; i/=2) {
+			if((crc & 0x80) != 0) {
+				crc *= 2;
+				crc ^= key;
+			}else{
+				crc *= 2;
+            }
+			if((*ptr & i)!=0) crc ^= key;
+		} ptr++;
+	} return(crc);
 }

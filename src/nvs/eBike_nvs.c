@@ -4,7 +4,10 @@
 
 #define EBIKE_NVS_NAMESPACE "eBike"
 
+
+
 nvs_handle_t eBike_nvs_handle;
+
 
 eBike_err_t eBike_nvs_init() {
     

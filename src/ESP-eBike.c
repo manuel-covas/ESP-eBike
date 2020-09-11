@@ -20,7 +20,7 @@ void app_main() {
     err = eBike_gpio_init(); eBike_err_report(err);
     err = eBike_ble_init();  eBike_err_report(err);
     err = eBike_auth_init(); eBike_err_report(err);
-    err = eBike_bms_init(); eBike_err_report(err);
+    err = eBike_bms_init();  eBike_err_report(err);
     
     printf("[System] - Done booting.\n");
 }
