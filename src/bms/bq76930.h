@@ -143,14 +143,14 @@ typedef struct bq76930_coulomb_counter_t {
 } bq76930_coulomb_counter_t;
 
 typedef struct bq76930_adc_gain_1_t {
-    uint8_t reserved1:2;
+    uint8_t reserved_1:2;
     uint8_t adc_gain_1:2;
 } bq76930_adc_gain_1_t;
 
-typedef struct bq76930_adc_gain2_t {
-    uint8_t reserved1:5;
+typedef struct bq76930_adc_gain_2_t {
+    uint8_t reserved_1:5;
     uint8_t adc_gain_2:3;
-} bq76930_adc_gain2_t;
+} bq76930_adc_gain_2_t;
 
 typedef struct bq76930_adc_offset_t {
     int8_t adc_offset;
