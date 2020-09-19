@@ -9,7 +9,8 @@
 typedef enum {
     BQ76930_SYS_STAT = 0x00,
     BQ76930_CELLBAL = 0x01,
-    BQ76930_SYS_CTRL = 0x04,
+    BQ76930_SYS_CTRL_1 = 0x04,
+    BQ76930_SYS_CTRL_2 = 0x05,
     BQ76930_PROTECT = 0x06,
     BQ76930_OV_UV_TRIP = 0x09,
     BQ76930_CC_CFG = 0x0B,
@@ -53,7 +54,7 @@ typedef struct bq76930_cellbal_t {
     bool cell_10:1;
 } bq76930_cellbal_t;
 
-typedef struct bq76930_sys_ctrl_t {
+typedef struct bq76930_sys_ctrl_1_t {
     bool shutdown_b:1;
     bool shutdown_a:1;
     bool reserved_1:1;
@@ -61,13 +62,16 @@ typedef struct bq76930_sys_ctrl_t {
     bool adc_enable:1;
     uint8_t reserved_2:2;
     bool load_present:1;
+} bq76930_sys_ctrl_1_t;
+
+typedef struct bq76930_sys_ctrl_2_t {
     bool charge_on:1;
     bool discharge_on:1;
     uint8_t reserved_3:3;
     bool coulomb_counter_oneshot:1;
     bool coulomb_counter_enable:1;
     bool disable_delays:1;
-} bq76930_sys_ctrl_t;
+} bq76930_sys_ctrl_2_t;
 
 typedef struct bq76930_protect_t {
     uint8_t short_circuit_threshold:3;
@@ -157,12 +161,8 @@ typedef struct bq76930_adc_offset_t {
 } bq76930_adc_offset_t;
 
 
-
-
 eBike_err_t bq76930_init();
 eBike_err_t bq76930_read_register(bq76930_register_t register_address, uint8_t* pointer);
 eBike_err_t bq76930_write_register(bq76930_register_t register_address, uint8_t* pointer);
-
-uint8_t crc8(uint8_t* ptr, uint8_t len);
 
 #endif

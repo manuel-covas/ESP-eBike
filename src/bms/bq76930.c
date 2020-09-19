@@ -4,6 +4,7 @@
 #include <bq76930.h>
 #include <eBike_err.h>
 #include <eBike_log.h>
+#include <eBike_util.h>
 
 
 eBike_err_t bq76930_init() {
@@ -208,8 +209,11 @@ const char* bq76930_register_to_name(bq76930_register_t register_address) {
     case BQ76930_CELLBAL:
         return "BQ76930_CELLBAL";
 
-    case BQ76930_SYS_CTRL:
-        return "BQ76930_SYS_CTRL";
+    case BQ76930_SYS_CTRL_1:
+        return "BQ76930_SYS_CTRL_1";
+
+    case BQ76930_SYS_CTRL_2:
+        return "BQ76930_SYS_CTRL_2";
 
     case BQ76930_PROTECT:
         return "BQ76930_PROTECT";
@@ -258,8 +262,11 @@ uint8_t bq76930_sizeof_register(bq76930_register_t register_address) {
     case BQ76930_CELLBAL:
         return sizeof(bq76930_cellbal_t);
 
-    case BQ76930_SYS_CTRL:
-        return sizeof(bq76930_sys_ctrl_t);
+    case BQ76930_SYS_CTRL_1:
+        return sizeof(bq76930_sys_ctrl_1_t);
+
+    case BQ76930_SYS_CTRL_2:
+        return sizeof(bq76930_sys_ctrl_2_t);
 
     case BQ76930_PROTECT:
         return sizeof(bq76930_protect_t);
@@ -292,27 +299,9 @@ uint8_t bq76930_sizeof_register(bq76930_register_t register_address) {
         return sizeof(bq76930_adc_offset_t);
 
     case BQ76930_ADC_GAIN_2:
-        return sizeof(bq76930_adc_gain2_t);
+        return sizeof(bq76930_adc_gain_2_t);
 
     default:
         return 0;
     }
-}
-
-uint8_t crc8(uint8_t* ptr, uint8_t len) {
-    uint8_t key = 0x07;
-	uint8_t i;
-	uint8_t crc=0;
-
-	while(len--!=0) {
-		for(i=0x80; i!=0; i/=2) {
-			if((crc & 0x80) != 0) {
-				crc *= 2;
-				crc ^= key;
-			}else{
-				crc *= 2;
-            }
-			if((*ptr & i)!=0) crc ^= key;
-		} ptr++;
-	} return(crc);
 }
