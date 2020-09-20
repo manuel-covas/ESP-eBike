@@ -1,13 +1,17 @@
 #include <malloc.h>
+#include <math.h>
 #include <eBike_err.h>
 #include <eBike_log.h>
 #include <eBike_nvs.h>
 #include <bq76930.h>
 #include <sdkconfig.h>
 
-
+double shunt_value = CONFIG_CURRENT_SENSE_RESISTOR / 1000;
 int adc_gain_microvolts = 0;
 int adc_offset_microvolts = 0;
+
+uint8_t overcurrent_table[32] = {8, 11, 14, 17, 19, 22, 25, 28, 31, 33, 36, 39, 42, 44, 47, 50,
+                                 17, 22, 28, 33, 39, 44, 50, 56, 61, 67, 72, 78, 83, 89, 94, 100};
 
 
 eBike_err_t eBike_bms_init() {
@@ -29,6 +33,16 @@ eBike_err_t eBike_bms_init() {
         printf("[BMS] - BQ76930 SYS_STAT has DEVICE_XREADY set. Clearing...\n");
         eBike_err = bq76930_write_register(BQ76930_SYS_STAT, (uint8_t*) &sys_stat_clear); if (eBike_err.eBike_err_type != EBIKE_OK) return eBike_err;
     }
+
+    // Turn off charge and discharge MOSFETs.
+    bq76930_sys_ctrl_2_t sys_ctrl_2 = {
+        .disable_delays = false,
+        .coulomb_counter_enable = true,
+        .discharge_on = false,
+        .charge_on = false
+    };
+    printf("[BMS] - Turning charge and discharge MOSFETs...\n");
+    eBike_err = bq76930_write_register(BQ76930_SYS_CTRL_2, (uint8_t*) &sys_ctrl_2); if (eBike_err.eBike_err_type != EBIKE_OK) return eBike_err;
 
 
     // Ensure cell balancing is not active. 
@@ -65,22 +79,18 @@ eBike_err_t eBike_bms_init() {
     return eBike_err;
 }
 
-
 eBike_err_t eBike_bms_config(eBike_settings_t eBike_settings) {
 
     printf("[BMS] - Writing settings to BQ76930...\n");
     eBike_err_t eBike_err;
 
-    bq76930_sys_ctrl_t sys_ctrl = {
+
+    bq76930_sys_ctrl_1_t sys_ctrl_1 = {
         .adc_enable = true,
-        .use_external_temp = !eBike_settings.bq76930_use_internal_thermistor,
-        .disable_delays = false,
-        .coulomb_counter_enable = true,
-        .discharge_on = false,
-        .charge_on = false
+        .use_external_temp = !eBike_settings.bq76930_use_internal_thermistor
     };
     printf(eBike_settings.bq76930_use_internal_thermistor ? "[BMS] - Using internal die temperature.\n" : "[BMS] - Using external thermistors.\n");
-    eBike_err = bq76930_write_register(BQ76930_SYS_CTRL, (uint8_t*) &sys_ctrl); if (eBike_err.eBike_err_type != EBIKE_OK) return eBike_err;
+    eBike_err = bq76930_write_register(BQ76930_SYS_CTRL_1, (uint8_t*) &sys_ctrl_1); if (eBike_err.eBike_err_type != EBIKE_OK) return eBike_err;
 
 
     bq76930_protect_t protect = {
@@ -104,4 +114,14 @@ eBike_err_t eBike_bms_config(eBike_settings_t eBike_settings) {
     eBike_err = bq76930_write_register(BQ76930_OV_UV_TRIP, (uint8_t*) &overvoltage_undervoltage_thresholds); if (eBike_err.eBike_err_type != EBIKE_OK) return eBike_err;
 
     return eBike_err;
+}
+
+
+double bq76930_settings_overcurrent_amps(eBike_settings_t eBike_settings) {
+    return (overcurrent_table[eBike_settings.bq76930_double_thresholds * 16 + eBike_settings.bq76930_overcurrent_threshold] / 1000) / shunt_value;
+}
+
+int bq76930_settings_overcurrent_delay_ms(eBike_settings_t eBike_settings) {
+    uint8_t code = eBike_settings.bq76930_overcurrent_delay;
+    return code < 1 ? 8 : 20 * (int) pow(2, code - 1);
 }
