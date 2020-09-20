@@ -20,6 +20,12 @@ menu "ESP-eBike Configuration"
             The amount of random bytes to use for the crypto challenge.
 
 
+    config CURRENT_SENSE_RESISTOR
+        int "Current Sense Resistor Value (mOhm)"
+        default 2
+        help
+            The value, in milliohms, of the current sense resistor.
+
     config OUT1_GPIO
         int "Power output 1 GPIO Number"
         default 26
@@ -63,7 +69,6 @@ menu "ESP-eBike Configuration"
         default 15
         help
             The GPIO number of the pin that activates the FAULT indicator led.
-
 
     config I2C_CLOCK_FREQUENCY
         int "I2C Clock Frequency"
