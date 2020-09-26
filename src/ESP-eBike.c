@@ -12,39 +12,44 @@
 #include <eBike_bms.h>
 #include <eBike_log.h>
 
-void load_settings();
+bool load_settings();
 
 
 eBike_settings_t eBike_settings;
 
 void app_main() {
     
-    eBike_err_t err;
+    eBike_err_t eBike_err;
     
-    err = eBike_nvs_init();  eBike_err_report(err);
-    err = eBike_gpio_init(); eBike_err_report(err);
-    err = eBike_ble_init();  eBike_err_report(err);
-    err = eBike_auth_init(); eBike_err_report(err);
-    err = eBike_bms_init();  eBike_err_report(err);
+    eBike_err = eBike_nvs_init();  eBike_err_report(eBike_err);
+    eBike_err = eBike_gpio_init(); eBike_err_report(eBike_err);
+    eBike_err = eBike_ble_init();  eBike_err_report(eBike_err);
+    eBike_err = eBike_auth_init(); eBike_err_report(eBike_err);
+    eBike_err = eBike_bms_init();  eBike_err_report(eBike_err);
     
-    load_settings();
-
+    if (load_settings()) {
+        eBike_err = eBike_bms_config(eBike_settings);
+        char* message;
+        asprintf(&message, "[System] - Failed to configure BQ76930 with NVS settings: eBike_err: %s (%i) esp_err: %s (%i).\n", eBike_err_to_name(eBike_err.eBike_err_type), eBike_err.eBike_err_type, esp_err_to_name(eBike_err.esp_err), eBike_err.esp_err);
+        eBike_log_add(message, strlen(message));
+        free(message);
+    }
+    
     printf("[System] - Done booting.\n");
 }
 
 
-void load_settings() {
+bool load_settings() {
 
-    char* message;
     eBike_err_t eBike_err = eBike_nvs_settings_get(&eBike_settings); if (eBike_err.eBike_err_type != EBIKE_OK) goto eBike_clean;
     
-
+    char* message = eBike_print_settings(eBike_settings);
     eBike_log_add(message, strlen(message));
     free(message);
-    
+    return true;
 
 eBike_clean:
-    asprintf(&message, "[System] - Failed to load settings from NVS: eBike_err: %s (%i) esp_err: %s (%i). Please re-configure them manually\n.", eBike_err_to_name(eBike_err.eBike_err_type), eBike_err.eBike_err_type, esp_err_to_name(eBike_err.esp_err), eBike_err.esp_err);
+    asprintf(&message, "[System] - Failed to load settings from NVS: eBike_err: %s (%i) esp_err: %s (%i). Please re-configure them manually.\n", eBike_err_to_name(eBike_err.eBike_err_type), eBike_err.eBike_err_type, esp_err_to_name(eBike_err.esp_err), eBike_err.esp_err);
     eBike_log_add(message, strlen(message));
     free(message);
     return false;

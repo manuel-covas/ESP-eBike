@@ -1,10 +1,24 @@
 #include <stdint.h>
 #include <string.h>
+#include <math.h>
 #include <driver/i2c.h>
 #include <bq76930.h>
 #include <eBike_err.h>
 #include <eBike_log.h>
 #include <eBike_util.h>
+
+
+bq76930_adc_characteristics_t adc_characteristics {
+    .shunt_value = CONFIG_CURRENT_SENSE_RESISTOR / 1000,
+    .adc_gain_microvolts = 0,
+    .adc_offset_microvolts = 0
+};
+
+uint8_t overcurrent_table[32] = {8, 11, 14, 17, 19, 22, 25, 28, 31, 33, 36, 39, 42, 44, 47, 50,
+                                 17, 22, 28, 33, 39, 44, 50, 56, 61, 67, 72, 78, 83, 89, 94, 100};
+
+uint8_t shortcircuit_table[16] = {22, 33, 44, 56, 67, 78, 89, 100,
+                                  44, 67, 89, 111, 133, 155, 178, 200};
 
 
 eBike_err_t bq76930_init() {
@@ -24,10 +38,31 @@ eBike_err_t bq76930_init() {
     EBIKE_HANDLE_ERROR(i2c_param_config(I2C_NUM_0, &i2c_config), EBIKE_BMS_INIT_I2C_CONFIG_FAIL, eBike_err);
     EBIKE_HANDLE_ERROR(i2c_driver_install(I2C_NUM_0, I2C_MODE_MASTER, 0, 0, 0), EBIKE_BMS_INIT_I2C_INSTALL_FAIL, eBike_err);
     
+    // Read adc gain and offset.
+    bq76930_adc_gain_1_t adc_gain_1;
+    bq76930_adc_gain_2_t adc_gain_2;
+    bq76930_adc_offset_t adc_offset;
+
+    printf("[BMS] - Reading ADC gain and offset...\n");
+
+    eBike_err = bq76930_read_register(BQ76930_ADC_GAIN_1, (uint8_t*) &adc_gain_1); if (eBike_err.eBike_err_type != EBIKE_OK) return eBike_err;
+    eBike_err = bq76930_read_register(BQ76930_ADC_GAIN_2, (uint8_t*) &adc_gain_2); if (eBike_err.eBike_err_type != EBIKE_OK) return eBike_err;
+    eBike_err = bq76930_read_register(BQ76930_ADC_OFFSET, (uint8_t*) &adc_offset); if (eBike_err.eBike_err_type != EBIKE_OK) return eBike_err;
+    
+    adc_characteristics.adc_gain_microvolts = 365 + ((adc_gain_1.adc_gain_1 << 3) | adc_gain_2.adc_gain_2);
+    adc_characteristics.adc_offset_microvolts = adc_offset.adc_offset * 1000;
+    
+    printf("[BMS] - ADC characteristics:\n"
+           "    ADC Gain: %i uV/LSB\n"
+           "    ADC_OFFSET: %i mV\n\n", adc_characteristics.adc_gain_microvolts, adc_offset.adc_offset);
+
 eBike_clean:
     return eBike_err;
 }
 
+bq76930_adc_characteristics_t bq76930_adc_characteristics() {
+    return adc_characteristics;
+}
 
 eBike_err_t bq76930_read_bytes(bq76930_register_t register_address, uint8_t* buffer, size_t length) {
     eBike_err_t eBike_err;
@@ -182,12 +217,12 @@ eBike_err_t bq76930_write_register(bq76930_register_t register_address, uint8_t*
             free(log_message);
 
         }else{
-
+            /*
             printf("[BMS] - I2C wrote ");
             for (int i = 0; i < length; i++) {
                 printf("%02X", *(message + 2 + i));
             }
-            printf(" to %s.\n", bq76930_register_to_name(register_address));
+            printf(" to %s.\n", bq76930_register_to_name(register_address)); */
 
             attempt = BQ76930_I2C_RETRIES;
         }
@@ -197,6 +232,48 @@ eBike_err_t bq76930_write_register(bq76930_register_t register_address, uint8_t*
             return eBike_err;
         }
     }
+}
+
+
+double bq76930_settings_overcurrent_amps(eBike_settings_t eBike_settings) {
+    return (overcurrent_table[eBike_settings.bq76930_double_thresholds * 16 + eBike_settings.bq76930_overcurrent_threshold] / 1000) / adc_characteristics.shunt_value;
+}
+
+int bq76930_settings_overcurrent_delay_ms(eBike_settings_t eBike_settings) {
+    uint8_t code = eBike_settings.bq76930_overcurrent_delay;
+    return code < 1 ? 8 : 20 * (int) pow(2, code - 1);
+}
+
+
+double bq76930_settings_shortcircuit_amps(eBike_settings_t eBike_settings) {
+    return (shortcircuit_table[eBike_settings.bq76930_double_thresholds * 8 + eBike_settings.bq76930_short_circuit_threshold] / 1000) / adc_characteristics.shunt_value;
+}
+
+int bq76930_settings_shortcircuit_delay_us(eBike_settings_t eBike_settings) {
+    uint8_t code = eBike_settings.bq76930_short_circuit_delay;
+    return code < 1 ? 70 : 100 * (int) pow(2, code - 1);
+}
+
+
+double bq76930_settings_underoltage_trip_volts(eBike_settings_t eBike_settings) {
+    int adc_mapping = (0b1 << 12) | (eBike_settings.bq76930_undervoltage_threshold << 4);
+    return (double) (adc_mapping * adc_characteristics.adc_gain_microvolts + adc_characteristics.adc_offset_microvolts) / 1000000;
+}
+
+int bq76930_settings_undervoltage_delay_seconds(eBike_settings_t eBike_settings) {
+    uint8_t code = eBike_settings.bq76930_undervoltage_delay;
+    return code < 1 ? 1 : 4 * (int) pow(2, code - 1);
+}
+
+
+double bq76930_settings_overvoltage_trip_volts(eBike_settings_t eBike_settings) {
+    int adc_mapping = (0b10 << 12) | (eBike_settings.bq76930_overvoltage_threshold << 4) | 0b1000;
+    return (double) (adc_mapping * adc_characteristics.adc_gain_microvolts + adc_characteristics.adc_offset_microvolts) / 1000000;
+}
+
+int bq76930_settings_overvoltage_delay_seconds(eBike_settings_t eBike_settings) {
+    uint8_t code = eBike_settings.bq76930_overvoltage_delay;
+    return 1 * (int) pow(2, code);
 }
 
 

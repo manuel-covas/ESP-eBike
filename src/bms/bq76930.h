@@ -161,8 +161,29 @@ typedef struct bq76930_adc_offset_t {
 } bq76930_adc_offset_t;
 
 
+typedef struct bq76930_adc_characteristics_t {
+    double shunt_value;
+    int adc_gain_microvolts;
+    int adc_offset_microvolts;
+} bq76930_adc_characteristics_t;
+
+
 eBike_err_t bq76930_init();
+bq76930_adc_characteristics_t bq76930_adc_characteristics();
+
 eBike_err_t bq76930_read_register(bq76930_register_t register_address, uint8_t* pointer);
 eBike_err_t bq76930_write_register(bq76930_register_t register_address, uint8_t* pointer);
+
+double bq76930_settings_overcurrent_amps(eBike_settings_t eBike_settings);
+int bq76930_settings_overcurrent_delay_ms(eBike_settings_t eBike_settings);
+
+double bq76930_settings_shortcircuit_amps(eBike_settings_t eBike_settings);
+int bq76930_settings_shortcircuit_delay_us(eBike_settings_t eBike_settings);
+
+double bq76930_settings_underoltage_trip_volts(eBike_settings_t eBike_settings);
+int bq76930_settings_undervoltage_delay_seconds(eBike_settings_t eBike_settings);
+
+double bq76930_settings_overvoltage_trip_volts(eBike_settings_t eBike_settings);
+int bq76930_settings_overvoltage_delay_seconds(eBike_settings_t eBike_settings);
 
 #endif

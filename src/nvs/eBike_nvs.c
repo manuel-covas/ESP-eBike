@@ -2,6 +2,7 @@
 #include <eBike_err.h>
 #include <eBike_log.h>
 #include <eBike_nvs.h>
+#include <eBike_util.h>
 #include <nvs_flash.h>
 #include <nvs.h>
 
