@@ -85,7 +85,6 @@ void eBike_log_send(void* parameters) {
     eBike_log_clear();
 
 eBike_clean:
-    eBike_ble_release_command_lock();
     printf("[Task] - Log task high water: %i\n", uxTaskGetStackHighWaterMark(NULL));
     vTaskDelete(NULL);
 }

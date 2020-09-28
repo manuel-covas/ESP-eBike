@@ -3,12 +3,13 @@
 #include <math.h>
 #include <driver/i2c.h>
 #include <bq76930.h>
+#include <eBike_nvs.h>
 #include <eBike_err.h>
 #include <eBike_log.h>
 #include <eBike_util.h>
 
 
-bq76930_adc_characteristics_t adc_characteristics {
+bq76930_adc_characteristics_t adc_characteristics = {
     .shunt_value = CONFIG_CURRENT_SENSE_RESISTOR / 1000,
     .adc_gain_microvolts = 0,
     .adc_offset_microvolts = 0

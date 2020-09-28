@@ -2,6 +2,8 @@
 #define BQ76930_H
 
 #include <eBike_err.h>
+#include <eBike_nvs.h>
+
 
 #define BQ76930_I2C_RETRIES 4
 

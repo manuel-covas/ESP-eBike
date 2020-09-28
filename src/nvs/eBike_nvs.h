@@ -25,5 +25,7 @@ typedef struct eBike_settings_t {
 
 eBike_err_t eBike_nvs_init();
 eBike_err_t eBike_nvs_settings_get(eBike_settings_t* pointer);
+eBike_err_t eBike_nvs_settings_put(eBike_settings_t* pointer);
+
 
 #endif

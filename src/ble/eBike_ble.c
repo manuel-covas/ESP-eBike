@@ -206,7 +206,6 @@ void eBike_gatts_callback(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, es
     case ESP_GATTS_CONNECT_EVT:
         eBike_ble_connection_id = param->connect.conn_id;
         eBike_ble_connected = true;
-        eBike_ble_release_command_lock();
         eBike_beep(&EBIKE_CONNECT_BEEP_DURATION_MS);
     break;
 

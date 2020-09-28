@@ -1,7 +1,6 @@
 #include <malloc.h>
 #include <eBike_err.h>
 #include <eBike_log.h>
-#include <eBike_nvs.h>
 #include <bq76930.h>
 #include <sdkconfig.h>
 

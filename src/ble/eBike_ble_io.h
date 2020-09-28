@@ -4,19 +4,22 @@
 typedef enum {
     EBIKE_COMMAND_NONE,
     EBIKE_COMMAND_LOG_RETRIEVE,
+    EBIKE_COMMAND_GET_SETTINGS,
     EBIKE_COMMAND_AUTH_GET_CHALLENGE,
-    EBIKE_COMMAND_AUTH_SOLVE_CHALLENGE
+    EBIKE_COMMAND_AUTHED_COMMAND,
+    EBIKE_COMMAND_AUTHED_COMMAND_PUT_SETTINGS
 }
 eBike_command_t;
 
-typedef struct eBike_command_state_t {
-    uint16_t current_index;
-    eBike_command_t current_command;
+typedef struct eBike_authed_command_t {
+    uint8_t* authed_command;
+    uint8_t authed_command_length;
+    uint8_t* signature;
+    uint16_t signature_length;
 }
-eBike_command_state_t;
+eBike_authed_command_t;
 
 
 void eBike_ble_io_recieve(void* p);
-void eBike_ble_release_command_lock();
 
 #endif

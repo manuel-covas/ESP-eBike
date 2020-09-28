@@ -65,8 +65,8 @@ bool eBike_auth_solve_challenge(unsigned char* message, size_t message_length, c
     unsigned char* hash = calloc(hash_info->size, 1);
 
     if (mbedtls_error_message == NULL || error_message == NULL || signed_content == NULL || hash == NULL) {
-        char* error_message = "[Auth] - Malloc to carry out verification failed!\n";
-        eBike_log_add(error_message, strlen(error_message));
+        char* msg = "[Auth] - Malloc to carry out verification failed!\n";
+        eBike_log_add(msg, strlen(msg));
         goto eBike_clean;
     }
 
