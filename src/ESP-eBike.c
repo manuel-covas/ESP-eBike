@@ -25,7 +25,7 @@ void app_main() {
     eBike_err = eBike_gpio_init(); eBike_err_report(eBike_err);
     eBike_err = eBike_ble_init();  eBike_err_report(eBike_err);
     eBike_err = eBike_auth_init(); eBike_err_report(eBike_err);
-    eBike_err = eBike_bms_init();  eBike_err_report(eBike_err);
+    //eBike_err = eBike_bms_init();  eBike_err_report(eBike_err);
     
     if (load_settings()) {
         eBike_err = eBike_bms_config(eBike_settings);
@@ -43,7 +43,7 @@ bool load_settings() {
 
     eBike_err_t eBike_err = eBike_nvs_settings_get(&eBike_settings); if (eBike_err.eBike_err_type != EBIKE_OK) goto eBike_clean;
     
-    char* message = eBike_print_settings(eBike_settings);
+    char* message = eBike_print_settings(eBike_settings, "[System] - Loaded settings form NVS:");
     eBike_log_add(message, strlen(message));
     free(message);
     return true;

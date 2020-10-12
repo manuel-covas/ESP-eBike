@@ -6,8 +6,9 @@
 #include <eBike_nvs.h>
 
 uint8_t crc8(uint8_t* ptr, uint8_t len);
-void crc32(const void *data, size_t n_bytes, uint32_t* crc);
+unsigned int xcrc32(const unsigned char *buf, int len);
 
-char* eBike_print_settings(eBike_settings_t eBike_settings);
+char* eBike_print_settings(eBike_settings_t eBike_settings, char* header_message);
+void bytes_to_hex(uint8_t* pointer, size_t length);
 
 #endif

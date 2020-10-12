@@ -1,6 +1,7 @@
 #include <esp_system.h>
 #include <eBike_err.h>
 #include <eBike_log.h>
+#include <eBike_util.h>
 #include <eBike_ble.h>
 #include <mbedtls/pk.h>
 #include <mbedtls/md_internal.h>
@@ -13,7 +14,7 @@
 
 void eBike_auth_refresh_challenge();
 
-const unsigned char* public_key = (unsigned char *) "-----BEGIN PUBLIC KEY-----\n" CONFIG_AUTH_RSA_PUBLIC_KEY "\n-----END PUBLIC KEY-----\n";
+const unsigned char* public_key = (unsigned char *) "-----BEGIN RSA PUBLIC KEY-----\n" CONFIG_AUTH_RSA_PUBLIC_KEY "\n-----END RSA PUBLIC KEY-----\n";
 const mbedtls_md_info_t* hash_info;
 uint8_t* current_challenge;
 mbedtls_pk_context rsa_context;
@@ -52,12 +53,13 @@ void eBike_auth_refresh_challenge() {
 }
 
 
-void eBike_auth_get_challenge() {
-    eBike_ble_tx(current_challenge, CONFIG_EBIKE_AUTH_CHALLENGE_LENGTH);
+uint8_t* eBike_auth_get_challenge() {
+    return current_challenge;
 }
 
 
 bool eBike_auth_solve_challenge(unsigned char* message, size_t message_length, const unsigned char* signature, size_t signature_length) {
+    
     int error = 0;
     char* mbedtls_error_message = calloc(100, 1);
     char* error_message = calloc(100, 1);

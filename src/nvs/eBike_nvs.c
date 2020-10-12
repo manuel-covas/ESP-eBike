@@ -39,8 +39,7 @@ eBike_err_t eBike_nvs_settings_get(eBike_settings_t* pointer) {
 
     EBIKE_HANDLE_ERROR(nvs_get_blob(eBike_nvs_handle, EBIKE_NVS_SETTIGNS_KEY, &result, &length), EBIKE_NVS_SETTINGS_GET_FAIL, eBike_err);
 
-    uint32_t crc;
-    crc32(&result, sizeof(eBike_settings_t) - 4, &crc);
+    uint32_t crc = xcrc32((uint8_t*) &result, sizeof(eBike_settings_t) - 4);
 
     if (crc != result.crc32) {
         eBike_err.eBike_err_type = EBIKE_NVS_SETTINGS_CRC_MISMATCH;
@@ -49,6 +48,30 @@ eBike_err_t eBike_nvs_settings_get(eBike_settings_t* pointer) {
         memcpy(pointer, &result, sizeof(eBike_settings_t));
     }
     
+eBike_clean:
+    return eBike_err;
+}
+
+
+eBike_err_t eBike_nvs_settings_put(eBike_settings_t* pointer) {
+    
+    eBike_err_t eBike_err;
+    size_t length = sizeof(eBike_settings_t);
+    uint32_t crc = xcrc32((uint8_t*)pointer, length - 4);
+
+    if (crc != pointer->crc32) {
+        eBike_err.eBike_err_type = EBIKE_NVS_SETTINGS_CRC_MISMATCH;
+        eBike_err.esp_err = ESP_OK;
+        printf("\nExpected CRC %i\nGot CRC %i\n", crc, pointer->crc32);
+        return eBike_err;
+    }
+    
+    char* message = eBike_print_settings(*(eBike_settings_t*) pointer, "[System] - Saving settings form bluetooth:");
+    eBike_log_add(message, strlen(message));
+    free(message);
+
+    EBIKE_HANDLE_ERROR(nvs_set_blob(eBike_nvs_handle, EBIKE_NVS_SETTIGNS_KEY, pointer, length), EBIKE_NVS_SETTINGS_PUT_FAIL, eBike_err);
+
 eBike_clean:
     return eBike_err;
 }

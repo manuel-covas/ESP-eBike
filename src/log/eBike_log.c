@@ -69,9 +69,14 @@ void eBike_log_send(void* parameters) {
         uint16_t sending_length = log_index - log_sending_index;
         if (sending_length > 500) sending_length = 500;
 
-        eBike_err = eBike_ble_tx((uint8_t*) (log_data + log_sending_index), sending_length);
+        uint8_t* chunk = malloc(sending_length + 1);
+        chunk[0] = EBIKE_COMMAND_LOG_RETRIEVE;
+        memcpy(chunk + 1, log_data + log_sending_index, sending_length);
+
+        eBike_err = eBike_ble_tx(chunk, sending_length + 1);
         log_sending_index += sending_length;
-    
+        free(chunk);
+
         if (eBike_err.eBike_err_type != EBIKE_OK) {
             printf("[Log] - BLE send failed: %s\n", eBike_err_to_name(eBike_err.eBike_err_type)); goto eBike_clean;
         }else if (eBike_err.esp_err != ESP_OK) {
