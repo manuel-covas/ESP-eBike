@@ -21,6 +21,13 @@ uint32_t EBIKE_CONNECT_BEEP_DURATION_MS = 80;
 #define  EBIKE_BLE_TX_CHAR_16BIT_UUID 0xAA01                         // BLE Tx Characteristic UUID
 #define  EBIKE_BLE_TX_CHAR_DESCRIPTOR_16BIT_UUID 0x2902              // BLE Tx Characteristic Descriptor UUID
 #define  EBIKE_BLE_RX_CHAR_16BIT_UUID 0xAB01                         // BLE Rx Characteristic UUID
+#define  EBIKE_BLE_TX_CHAR_DESCRIPTOR_16BIT_UUID 0x2902              // BLE Rx Characteristic Descriptor UUID
+
+static uint8_t advertising_service_uuid[16] = {
+    /* LSB <--------------------------------------------------------------------------------> MSB */
+    //first uuid, 16bit, [12],[13] is the value
+    0xfb, 0x34, 0x9b, 0x5f, 0x80, 0x00, 0x00, 0x80, 0x00, 0x10, 0x00, 0x00, EBIKE_BLE_SERVICE_16BIT_UUID & 0x00FF, (EBIKE_BLE_SERVICE_16BIT_UUID & 0xFF00) >> 8, 0x00, 0x00
+};
 
 
 esp_ble_adv_data_t advertising_data = {
@@ -34,8 +41,8 @@ esp_ble_adv_data_t advertising_data = {
     .p_manufacturer_data = NULL,                    /*!< Manufacturer data point */
     .service_data_len = 0,                          /*!< Service data length */
     .p_service_data = NULL,                         /*!< Service data point */
-    .service_uuid_len = 0,                          /*!< Service uuid length */
-    .p_service_uuid = NULL,                         /*!< Service uuid array point */
+    .service_uuid_len = 16,                         /*!< Service uuid length */
+    .p_service_uuid = advertising_service_uuid,     /*!< Service uuid array point */
     .flag = ESP_BLE_ADV_FLAG_GEN_DISC               /*!< Advertising flag of discovery mode, see BLE_ADV_DATA_FLAG detail */
 };
 
