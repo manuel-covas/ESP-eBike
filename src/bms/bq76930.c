@@ -10,7 +10,7 @@
 
 
 bq76930_adc_characteristics_t adc_characteristics = {
-    .shunt_value = CONFIG_CURRENT_SENSE_RESISTOR / 1000,
+    .shunt_value = (double) CONFIG_CURRENT_SENSE_RESISTOR / 1000,
     .adc_gain_microvolts = 0,
     .adc_offset_microvolts = 0
 };
@@ -61,7 +61,7 @@ eBike_clean:
     return eBike_err;
 }
 
-bq76930_adc_characteristics_t bq76930_adc_characteristics() {
+bq76930_adc_characteristics_t bq76930_get_adc_characteristics() {
     return adc_characteristics;
 }
 

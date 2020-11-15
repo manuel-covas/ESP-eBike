@@ -11,6 +11,7 @@
 #include <eBike_ble_io.h>
 #include <eBike_auth.h>
 #include <eBike_nvs.h>
+#include <bq76930.h>
 
 void eBike_ble_execute_authed_command(eBike_authed_command_t authed_command);
 void eBike_ble_send_command_response(eBike_command_response_t command_response, uint8_t* response_data, size_t response_data_length);
@@ -39,7 +40,7 @@ void eBike_ble_io_recieve(void* p) {
     switch (*data) {
 
         case EBIKE_COMMAND_LOG_RETRIEVE:
-            xTaskCreate(eBike_log_send, "Log sender", 1900, NULL, tskIDLE_PRIORITY, NULL);
+            xTaskCreate(eBike_log_send, "Log sender", 1600, NULL, tskIDLE_PRIORITY, NULL);
             command_locked = false;
         break;
 
@@ -59,10 +60,25 @@ void eBike_ble_io_recieve(void* p) {
             }else{
                 eBike_ble_send_command_response(response, NULL, 0);
             }
+            
+            command_locked = false;
+        break;
+
+
+        case EBIKE_COMMAND_GET_ADC_CHARACTERISTICS:
+            ;
+            bq76930_adc_characteristics_t adc_characteristics = bq76930_get_adc_characteristics();
+
+            memset(&response, 0, sizeof(eBike_command_response_t));
+            response.eBike_command = EBIKE_COMMAND_GET_ADC_CHARACTERISTICS;
+            response.eBike_err_type = EBIKE_OK;
+            response.esp_err = ESP_OK;
+            
+            eBike_ble_send_command_response(response, (uint8_t*)&adc_characteristics, sizeof(bq76930_adc_characteristics_t));
 
             command_locked = false;
         break;
-        
+
 
         case EBIKE_COMMAND_AUTH_GET_CHALLENGE:
             
@@ -179,15 +195,12 @@ too_short:
 
 void eBike_ble_send_command_response(eBike_command_response_t command_response, uint8_t* response_data, size_t response_data_length) {
 
-    size_t response_length = 1 + sizeof(eBike_err_type_t) + sizeof(esp_err_t) + response_data_length;
+    size_t response_length = sizeof(eBike_command_response_t) + response_data_length;
     uint8_t* response = malloc(response_length);
 
-    response[0] = command_response.eBike_command;
-    memcpy(response + 1, &command_response.eBike_err_type, sizeof(eBike_err_type_t));
-    memcpy(response + 1 + sizeof(eBike_err_type_t), &command_response.esp_err, sizeof(esp_err_t));
-    
+    memcpy(response, &command_response, sizeof(eBike_command_response_t));
     if (response_data_length > 0)
-        memcpy(response + 1 + sizeof(eBike_err_type_t) + sizeof(esp_err_t), response_data, response_data_length);
+        memcpy(response + sizeof(eBike_command_response_t), response_data, response_data_length);
 
     eBike_ble_tx(response, response_length);
     free(response);
