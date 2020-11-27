@@ -43,9 +43,9 @@ Uppon finishing service discovery the connecting device should:
 Each write / indicate event contains only one, full, packet.\
 Packets are formatted as follows when writing:
 
-|   | Command Byte | Data (optional) |
-|:-:|:------------:|:---------------:|
-| **Length** | 1 byte | Command specific length |
+|                 | Command Byte      | Data (optional) |
+|:---------------:|:------------------:|:---------------:|
+| **Length**      | 1 byte             | Command specific length |
 | **Description** | Identifies command | Optional data bytes |
 
 Packets are formatted as follows when receiving:
@@ -59,8 +59,41 @@ Packets are formatted as follows when receiving:
 The BLE commands are listed below:
 
 - **Retreive Log** - `0x01 (EBIKE_COMMAND_LOG_RETRIEVE)`\
-Use to retreive the BLE system log. It is less extensive than the log written to UART_0 (printf).\
+Used to retreive the BLE system log. It is less extensive than the log written to UART_0 (printf).\
 One or more `0x01` responses containg the text will be sent back.\
 No data for this command, extra bytes will be ignored.
 
-- **Get Settings** - `0x02 (EBIKE_COMMAND_GET_SETTINGS)`
+- **Get Settings** - `0x02 (EBIKE_COMMAND_GET_SETTINGS)`\
+Used to retrieve the eBike settings stored in NVS on the ESP32.\
+One `0x02` response will be sent back containing the data.\
+No data for this command, extra bytes will be ignored.
+
+- **Get ADC Characteristics** - `0x03 (EBIKE_COMMAND_GET_ADC_CHARACTERISTICS)`\
+Used to retrieve the on-board BQ76930's ADC characteristics.\
+One `0x03` response will be sent back containing the data.\
+No data for this command, extra bytes will be ignored.
+
+- **Get Authentication Challenge** - `0x04 (EBIKE_COMMAND_AUTH_GET_CHALLENGE)`\
+Used to get the currently active authentication challenge.\
+One `0x04` response will be sent back containing the challenge.\
+No data for this command, extra bytes will be ignored.
+
+- **Run Authenticated Command** - `0x05 (EBIKE_COMMAND_AUTHED_COMMAND)`\
+Used to execute an Authenticated Command (see below).\
+One `0x05` response will be sent back indicating the outcome.\
+Extra data must be sent for this command. See below.
+
+### Authentication
+Some BLE commands can't be run without authentication. These are *Authenticated Commands*.
+
+This project is meant to be built with the public key of an RSA keypair in it's configuration.\
+To run an Authenticated Command one must suffix the packet with the bytes of the currently active authentication challenge,
+take an SHA-256 hash of this concatenation and sign it with the private key of the keypair in use.\
+This signature can then be used as a parameter for the **Run Authenticated Command** command.
+
+Thus the structure of **Run Authenticated Command** - `0x05 (EBIKE_COMMAND_AUTHED_COMMAND)` is as follows:
+
+|                 | Command Byte | Authenticated Command length      | Authenticated Command          | RSA Signature length              | RSA Signature |
+|:---------------:|:------------:|:---------------------------------:|:------------------------------:|:---------------------------------:|:-------------:|
+| **Length**      | 1 byte       | 2 bytes (LSB)                     | CMD_LEN bytes                  | 2 bytes (LSB)                     | SIG_LEN bytes |
+| **Description** | **0x05**     | Unsigned 16 bit integer (CMD_LEN) | Command to run (nested packet) | Unsigned 16 bit integer (SIG_LEN) | RSA Signature |
