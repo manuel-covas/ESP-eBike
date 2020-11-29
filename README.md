@@ -97,3 +97,13 @@ Thus the structure of **Run Authenticated Command** - `0x05 (EBIKE_COMMAND_AUTHE
 |:---------------:|:------------:|:---------------------------------:|:------------------------------:|:---------------------------------:|:-------------:|
 | **Length**      | 1 byte       | 2 bytes (LSB)                     | CMD_LEN bytes                  | 2 bytes (LSB)                     | SIG_LEN bytes |
 | **Description** | **0x05**     | Unsigned 16 bit integer (CMD_LEN) | Command to run (nested packet) | Unsigned 16 bit integer (SIG_LEN) | RSA Signature |
+
+### Authenticated Commands
+The Authenticated BLE commands are listed below:
+
+- **Put Settings** - `0x06 (EBIKE_COMMAND_AUTHED_COMMAND_PUT_SETTINGS)`\
+Used to overwrite the current settings.\
+One `0x06` response will be sent back indicating the outcome.\
+The data bytes must consist of, at least, sizeof(eBike_settings_t) bytes which correspond, in the order defined in [eBike_nvs.h](https://github.com/manuel-covas/ESP-eBike/blob/master/src/nvs/eBike_nvs.h), to the bytes of an eBike_settings_t struct.\
+Extra bytes will be ignored.
+
