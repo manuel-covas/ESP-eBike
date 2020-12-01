@@ -43,17 +43,17 @@ Uppon finishing service discovery the connecting device should:
 Each write / indicate event contains only one, full, packet.\
 Packets are formatted as follows when writing:
 
-|                 | Command Byte      | Data (optional) |
-|:---------------:|:------------------:|:---------------:|
+|                 | Command Byte       | Data (optional)         |
+|:---------------:|:------------------:|:-----------------------:|
 | **Length**      | 1 byte             | Command specific length |
-| **Description** | Identifies command | Optional data bytes |
+| **Description** | Identifies command | Optional data bytes     |
 
 Packets are formatted as follows when receiving:
 
-|   | Response Byte | ESP Error | eBike Error | Data (optional) |
-|:-:|:-------------:|:---------:|:-----------:|:---------------:|
-| **Length** | 1 byte | 4 bytes (LSB) | 4 bytes (LSB) | Response dependent |
-| **Description** | Identifies response type | ESP error integer (esp_err_t) | eBike error struct (eBike_err_t) | Optional response data |
+|                 | Response Byte            | eBike Error                      | Data (optional)        |
+|:---------------:|:------------------------:|:--------------------------------:|:----------------------:|
+| **Length**      | 1 byte                   | 8 bytes                          | Response dependent     |
+| **Description** | Identifies response type | eBike error struct (eBike_err_t) | Optional response data |
 
 ### Commands
 The BLE commands are listed below:
