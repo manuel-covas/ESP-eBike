@@ -53,7 +53,7 @@ Packets are formatted as follows when receiving:
 |   | Response Byte | ESP Error | eBike Error | Data (optional) |
 |:-:|:-------------:|:---------:|:-----------:|:---------------:|
 | **Length** | 1 byte | 4 bytes (LSB) | 4 bytes (LSB) | Response dependent |
-| **Description** | Identifies response type | ESP error integer | eBike error integer | Optional response data |
+| **Description** | Identifies response type | ESP error integer (esp_err_t) | eBike error struct (eBike_err_t) | Optional response data |
 
 ### Commands
 The BLE commands are listed below:
