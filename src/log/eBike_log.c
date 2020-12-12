@@ -55,7 +55,7 @@ void eBike_log_clear() {
 
 void eBike_log_send(void* parameters) {
     eBike_err_t eBike_err;
-    eBike_command_response_t response = {
+    eBike_response_t response = {
         .eBike_command = EBIKE_COMMAND_LOG_RETRIEVE,
         .esp_err = ESP_OK,
         .eBike_err_type = EBIKE_OK

@@ -14,7 +14,7 @@
 #include <bq76930.h>
 
 void eBike_ble_execute_authed_command(eBike_authed_command_t authed_command);
-void eBike_ble_send_command_response(eBike_command_response_t command_response, uint8_t* response_data, size_t response_data_length);
+void eBike_ble_send_command_response(eBike_response_t command_response, uint8_t* response_data, size_t response_data_length);
 
 
 char* data_too_short_message = "[BLE] - Data sent was too short for command.\n";
@@ -32,7 +32,7 @@ void eBike_ble_io_recieve(void* p) {
     struct gatts_write_evt_param* parameters = (struct gatts_write_evt_param*) p;
     uint8_t* data = parameters->value;
     uint16_t length = parameters->len;
-    eBike_command_response_t response;
+    eBike_response_t response;
     
     if (data == NULL || length < 1) goto too_short;
     
@@ -50,8 +50,8 @@ void eBike_ble_io_recieve(void* p) {
             eBike_settings_t eBike_settings;
             eBike_err_t eBike_err = eBike_nvs_settings_get(&eBike_settings);
 
-            memset(&response, 0, sizeof(eBike_command_response_t));
-            response.eBike_command = EBIKE_COMMAND_GET_SETTINGS;
+            memset(&response, 0, sizeof(eBike_response_t));
+            response.eBike_response = EBIKE_COMMAND_GET_SETTINGS;
             response.eBike_err_type = eBike_err.eBike_err_type;
             response.esp_err = eBike_err.esp_err;
             
@@ -69,8 +69,8 @@ void eBike_ble_io_recieve(void* p) {
             ;
             bq76930_adc_characteristics_t adc_characteristics = bq76930_get_adc_characteristics();
 
-            memset(&response, 0, sizeof(eBike_command_response_t));
-            response.eBike_command = EBIKE_COMMAND_GET_ADC_CHARACTERISTICS;
+            memset(&response, 0, sizeof(eBike_response_t));
+            response.eBike_response = EBIKE_COMMAND_GET_ADC_CHARACTERISTICS;
             response.eBike_err_type = EBIKE_OK;
             response.esp_err = ESP_OK;
             
@@ -82,8 +82,8 @@ void eBike_ble_io_recieve(void* p) {
 
         case EBIKE_COMMAND_AUTH_GET_CHALLENGE:
             
-            memset(&response, 0, sizeof(eBike_command_response_t));
-            response.eBike_command = EBIKE_COMMAND_AUTH_GET_CHALLENGE;
+            memset(&response, 0, sizeof(eBike_response_t));
+            response.eBike_response = EBIKE_COMMAND_AUTH_GET_CHALLENGE;
             response.eBike_err_type = EBIKE_OK;
             response.esp_err = ESP_OK;
 
@@ -193,14 +193,14 @@ too_short:
 }
 
 
-void eBike_ble_send_command_response(eBike_command_response_t command_response, uint8_t* response_data, size_t response_data_length) {
+void eBike_ble_send_command_response(eBike_response_t command_response, uint8_t* response_data, size_t response_data_length) {
 
-    size_t response_length = sizeof(eBike_command_response_t) + response_data_length;
+    size_t response_length = sizeof(eBike_response_t) + response_data_length;
     uint8_t* response = malloc(response_length);
 
-    memcpy(response, &command_response, sizeof(eBike_command_response_t));
+    memcpy(response, &command_response, sizeof(eBike_response_t));
     if (response_data_length > 0)
-        memcpy(response + sizeof(eBike_command_response_t), response_data, response_data_length);
+        memcpy(response + sizeof(eBike_response_t), response_data, response_data_length);
 
     eBike_ble_tx(response, response_length);
     free(response);

@@ -21,12 +21,13 @@ typedef struct eBike_authed_command_t {
 }
 eBike_authed_command_t;
 
-typedef struct eBike_command_response_t {
-    uint8_t eBike_command;
+
+typedef struct eBike_response_t {
+    uint8_t eBike_response;
     esp_err_t esp_err;
     eBike_err_type_t eBike_err_type;
 }
-eBike_command_response_t;
+eBike_response_t;
 
 
 void eBike_ble_io_recieve(void* p);
