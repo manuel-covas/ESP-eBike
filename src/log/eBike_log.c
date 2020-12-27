@@ -55,8 +55,9 @@ void eBike_log_clear() {
 
 void eBike_log_send(void* parameters) {
     eBike_err_t eBike_err;
+    
     eBike_response_t response = {
-        .eBike_command = EBIKE_COMMAND_LOG_RETRIEVE,
+        .eBike_response = EBIKE_COMMAND_LOG_RETRIEVE,
         .esp_err = ESP_OK,
         .eBike_err_type = EBIKE_OK
     };
@@ -64,7 +65,7 @@ void eBike_log_send(void* parameters) {
     size_t response_header_buffer_len = 1 + sizeof(esp_err_t) + sizeof(eBike_err_type_t) + sizeof(int);
     uint8_t* response_header_buffer = malloc(response_header_buffer_len);
 
-    response_header_buffer[0] = response.eBike_command;
+    response_header_buffer[0] = response.eBike_response;
     memcpy(response_header_buffer + 1, &response.esp_err, sizeof(esp_err_t));
     memcpy(response_header_buffer + 1 + sizeof(esp_err_t), &response.eBike_err_type, sizeof(eBike_err_type_t));
     memcpy(response_header_buffer + 1 + sizeof(esp_err_t) + sizeof(eBike_err_type_t), &log_index, sizeof(int));

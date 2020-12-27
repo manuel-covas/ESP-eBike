@@ -24,8 +24,7 @@ eBike_authed_command_t;
 
 typedef struct eBike_response_t {
     uint8_t eBike_response;
-    esp_err_t esp_err;
-    eBike_err_type_t eBike_err_type;
+    eBike_err_t eBike_err;
 }
 eBike_response_t;
 
