@@ -19,7 +19,7 @@ I added the following corrections with an iron (default values for project confi
 - I2C: pin 6 (SDA) and 7 (SCL) bridged to pin 13 and 16 (GPIO14 and GPIO13)
 
 ## Bluetooth Low Energy (BLE) Interface
-The ESP32 can be intercated with through a BLE GATT server that allows for commands issuing as well data retreival.
+The ESP32 can be intercated with through a BLE GATT server that allows for command issuing as well as data retreival.
 
 ### Advertisement Packets
 BLE advertisment packets will be sent out periodically whenever there is no active connection.
@@ -106,4 +106,40 @@ Used to overwrite the current settings.\
 One `0x06` response will be sent back indicating the outcome.\
 The data bytes must consist of, at least, sizeof(eBike_settings_t) bytes which correspond, in the order defined in [eBike_nvs.h](https://github.com/manuel-covas/ESP-eBike/blob/master/src/nvs/eBike_nvs.h), to the bytes of an eBike_settings_t struct.\
 Extra bytes will be ignored.
+
+### Responses
+The BLE responses are listed bellow:
+
+### ESP-eBike Errors
+These are the defines for ESP-eBike errors: [(eBike_err.h)](https://github.com/manuel-covas/ESP-eBike/blob/master/src/nvs/eBike_err.h)
+```c
+#define EBIKE_OK 0                                      // Success.
+#define EBIKE_NVS_INIT_ERASE_FAIL 1                     // NVS Init: Failed to erase flash chip.
+#define EBIKE_NVS_INIT_FAIL 2                           // NVS Init: ESP-IDF nvs_flash_init() failed.
+#define EBIKE_NVS_INIT_OPEN_FAIL 3                      // NVS Init: Failed to open NVS namespace EBIKE_NVS_NAMESPACE with mode NVS_READWRITE.
+#define EBIKE_GPIO_INIT_CONFIG_FAIL 4                   // GPIO Init: ESP-IDF gpio_config() failed.
+#define EBIKE_BLE_INIT_CONTROLLER_INIT_FAIL 5           // BLE Init: Initializing bluetooth controller with BT_CONTROLLER_INIT_CONFIG_DEFAULT failed.
+#define EBIKE_BLE_INIT_ENABLE_CONTROLLER_FAIL 6         // BLE Init: Bluetooth controller enabling failed.
+#define EBIKE_BLE_INIT_BLUEDROID_INIT_FAIL 7            // BLE Init: Bluedroid stack initialization failed.
+#define EBIKE_BLE_INIT_BLUEDROID_ENABLE_FAIL 8          // BLE Init: Bluedroid stack enabling failed.
+#define EBIKE_BLE_INIT_GAP_CALLBACK_REGISTER_FAIL 9     // BLE Init: GAP callback function registration failed.
+#define EBIKE_BLE_INIT_GATTS_CALLBACK_REGISTER_FAIL 10  // BLE Init: GATT server callback function registration failed.
+#define EBIKE_BLE_INIT_GATTS_APP_REGISTER_FAIL 11       // BLE Init: GATT server callback function registration failed.
+#define EBIKE_BLE_INIT_SET_BT_NAME_FAIL 12              // BLE Init: Failed to set device's bluetooth name.
+#define EBIKE_BLE_INIT_SET_ADV_DATA_FAIL 13             // BLE Init: Failed to set desired BLE advertising data.
+#define EBIKE_BLE_INIT_START_ADV_FAIL 14                // BLE Init: Failed to start BLE advertising.
+#define EBIKE_BLE_TX_NOT_CONNECTED 15                   // BLE Transmit: An attempt to send data over BLE was made but no connection was active.
+#define EBIKE_BLE_TX_BAD_ARGUMENTS 16                   // BLE Transmit: Incorrect parameters passed to eBike_ble_tx()
+#define EBIKE_LOG_INIT_MALLOC_FAIL 17                   // BLE Log Init: Failed to malloc for the log's buffer failed.
+#define EBIKE_AUTH_INIT_MALLOC_FAIL 18                  // Authentication Init: Malloc failed
+#define EBIKE_AUTH_INIT_PARSE_KEY_FAIL 19               // Authentication Init: Parsing of built in public key failed.
+#define EBIKE_NVS_SETTINGS_GET_FAIL 20                  // NVS Settings: Read from NVS failed.
+#define EBIKE_NVS_SETTINGS_PUT_FAIL 21                  // NVS Settings: Write to NVS failed.
+#define EBIKE_NVS_SETTINGS_CRC_MISMATCH 22              // NVS Settings: CRC check failed. Could happen when reading or writing settings.
+#define EBIKE_BMS_INIT_I2C_CONFIG_FAIL 23               // BMS Init: I2C driver configuring failed.
+#define EBIKE_BMS_INIT_I2C_INSTALL_FAIL 24              // BMS Init: I2C driver activation failed.
+#define EBIKE_BMS_I2C_BUILD_COMMAND_FAIL 25             // BMS I2C Communication: Failure while preparing I2C command to communicate with BQ769x0.
+#define EBIKE_BMS_I2C_COMMAND_FAIL 26                   // BMS I2C Communication: I2C data exchange failed. (not acknowledged or other)
+#define EBIKE_BMS_I2C_CRC_MISMATCH 27                   // BMS I2C Communication: BQ769x0 communication CRC mismatched. (explained in the chip's datasheet)
+```
 
