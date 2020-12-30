@@ -58,8 +58,10 @@ void eBike_log_send(void* parameters) {
     
     eBike_response_t response = {
         .eBike_response = EBIKE_COMMAND_LOG_RETRIEVE,
-        .esp_err = ESP_OK,
-        .eBike_err_type = EBIKE_OK
+        .eBike_err = {
+            .eBike_err_type = EBIKE_OK,
+            .esp_err = ESP_OK
+        }
     };
 
     size_t response_header_buffer_len = 1 + sizeof(esp_err_t) + sizeof(eBike_err_type_t) + sizeof(int);

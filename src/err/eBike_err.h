@@ -24,16 +24,16 @@
 #define EBIKE_BLE_TX_NOT_CONNECTED 15                   // BLE Transmit: An attempt to send data over BLE was made but no connection was active.
 #define EBIKE_BLE_TX_BAD_ARGUMENTS 16                   // BLE Transmit: Incorrect parameters passed to eBike_ble_tx()
 #define EBIKE_LOG_INIT_MALLOC_FAIL 17                   // BLE Log Init: Failed to malloc for the log's buffer failed.
-#define EBIKE_AUTH_INIT_MALLOC_FAIL 18                  
-#define EBIKE_AUTH_INIT_PARSE_KEY_FAIL 19
-#define EBIKE_NVS_SETTINGS_GET_FAIL 20
-#define EBIKE_NVS_SETTINGS_PUT_FAIL 21
-#define EBIKE_NVS_SETTINGS_CRC_MISMATCH 22
-#define EBIKE_BMS_INIT_I2C_CONFIG_FAIL 23
-#define EBIKE_BMS_INIT_I2C_INSTALL_FAIL 24
-#define EBIKE_BMS_I2C_BUILD_COMMAND_FAIL 25
-#define EBIKE_BMS_I2C_COMMAND_FAIL 26
-#define EBIKE_BMS_I2C_CRC_MISMATCH 27
+#define EBIKE_AUTH_INIT_MALLOC_FAIL 18                  // Authentication Init: Malloc failed
+#define EBIKE_AUTH_INIT_PARSE_KEY_FAIL 19               // Authentication Init: Parsing of built in public key failed.
+#define EBIKE_NVS_SETTINGS_GET_FAIL 20                  // NVS Settings: Read from NVS failed.
+#define EBIKE_NVS_SETTINGS_PUT_FAIL 21                  // NVS Settings: Write to NVS failed.
+#define EBIKE_NVS_SETTINGS_CRC_MISMATCH 22              // NVS Settings: CRC check failed. Could happen when reading or writing settings.
+#define EBIKE_BMS_INIT_I2C_CONFIG_FAIL 23               // BMS Init: I2C driver configuring failed.
+#define EBIKE_BMS_INIT_I2C_INSTALL_FAIL 24              // BMS Init: I2C driver activation failed.
+#define EBIKE_BMS_I2C_BUILD_COMMAND_FAIL 25             // BMS I2C Communication: Failure while preparing I2C command to communicate with BQ769x0.
+#define EBIKE_BMS_I2C_COMMAND_FAIL 26                   // BMS I2C Communication: I2C data exchange failed. (not acknowledged or other)
+#define EBIKE_BMS_I2C_CRC_MISMATCH 27                   // BMS I2C Communication: BQ769x0 communication CRC mismatched. (explained in the chip's datasheet)
 
 typedef int32_t eBike_err_type_t;
 

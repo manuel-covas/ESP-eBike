@@ -52,8 +52,7 @@ void eBike_ble_io_recieve(void* p) {
 
             memset(&response, 0, sizeof(eBike_response_t));
             response.eBike_response = EBIKE_COMMAND_GET_SETTINGS;
-            response.eBike_err_type = eBike_err.eBike_err_type;
-            response.esp_err = eBike_err.esp_err;
+            response.eBike_err = eBike_err;
             
             if (eBike_err.eBike_err_type == EBIKE_OK) {
                 eBike_ble_send_command_response(response, (uint8_t*)&eBike_settings, sizeof(eBike_settings_t));
