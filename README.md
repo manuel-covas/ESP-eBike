@@ -111,7 +111,7 @@ Extra bytes will be ignored.
 The BLE responses are listed bellow:
 
 ### ESP-eBike Errors
-These are the defines for ESP-eBike errors: [(eBike_err.h)](https://github.com/manuel-covas/ESP-eBike/blob/master/src/nvs/eBike_err.h)
+These are the defines for ESP-eBike errors: ([eBike_err.h](https://github.com/manuel-covas/ESP-eBike/blob/master/src/err/eBike_err.h))
 ```c
 #define EBIKE_OK 0                                      // Success.
 #define EBIKE_NVS_INIT_ERASE_FAIL 1                     // NVS Init: Failed to erase flash chip.
