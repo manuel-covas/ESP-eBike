@@ -13,6 +13,8 @@ typedef enum {
 eBike_command_t;
 
 
+#pragma pack(1)
+
 typedef struct eBike_authed_command_t {
     uint8_t* authed_command;
     uint8_t authed_command_length;
