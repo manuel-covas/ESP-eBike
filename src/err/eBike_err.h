@@ -46,13 +46,16 @@ eBike_err_t;
 
 
 #define EBIKE_HANDLE_ERROR(esp_err_param, eBike_err_type_param, eBike_err_param) \
-    if (esp_err_param != ESP_OK) {                                               \
-        eBike_err_param.esp_err = esp_err_param;                                 \
-        eBike_err_param.eBike_err_type = eBike_err_type_param;                   \
-        goto eBike_clean;                                                  \
-    }else{                                                                       \
-        eBike_err_param.esp_err = ESP_OK;                                        \
-        eBike_err_param.eBike_err_type = EBIKE_OK;                         \
+    if (1) {                                                                     \
+        esp_err_t result_err = esp_err_param;                                    \
+        if (result_err != ESP_OK) {                                              \
+            eBike_err_param.esp_err = result_err;                                \
+            eBike_err_param.eBike_err_type = eBike_err_type_param;               \
+            goto eBike_clean;                                                    \
+        }else{                                                                   \
+            eBike_err_param.esp_err = ESP_OK;                                    \
+            eBike_err_param.eBike_err_type = EBIKE_OK;                           \
+        }                                                                        \
     }
 
 const char* eBike_err_to_name(eBike_err_type_t);

@@ -13,9 +13,7 @@ typedef enum {
 eBike_command_t;
 
 
-#pragma pack(1)
-
-typedef struct eBike_authed_command_t {
+typedef struct __attribute__((__packed__)) eBike_authed_command_t {
     uint8_t* authed_command;
     uint8_t authed_command_length;
     uint8_t* signature;
@@ -24,7 +22,7 @@ typedef struct eBike_authed_command_t {
 eBike_authed_command_t;
 
 
-typedef struct eBike_response_t {
+typedef struct __attribute__((__packed__)) eBike_response_t {
     uint8_t eBike_response;
     eBike_err_t eBike_err;
 }

@@ -21,7 +21,7 @@ uint32_t EBIKE_CONNECT_BEEP_DURATION_MS = 80;
 #define  EBIKE_BLE_TX_CHAR_16BIT_UUID 0xAA01                         // BLE Tx Characteristic UUID
 #define  EBIKE_BLE_TX_CHAR_DESCRIPTOR_16BIT_UUID 0x2902              // BLE Tx Characteristic Descriptor UUID
 #define  EBIKE_BLE_RX_CHAR_16BIT_UUID 0xAB01                         // BLE Rx Characteristic UUID
-#define  EBIKE_BLE_TX_CHAR_DESCRIPTOR_16BIT_UUID 0x2902              // BLE Rx Characteristic Descriptor UUID
+#define  EBIKE_BLE_RX_CHAR_DESCRIPTOR_16BIT_UUID 0x2902              // BLE Rx Characteristic Descriptor UUID
 
 static uint8_t advertising_service_uuid[16] = {
     /* LSB <--------------------------------------------------------------------------------> MSB */

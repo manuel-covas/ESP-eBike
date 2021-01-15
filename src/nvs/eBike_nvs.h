@@ -5,8 +5,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#pragma pack(1)
-typedef struct eBike_settings_t {
+
+typedef struct __attribute__((__packed__)) eBike_settings_t {
 
     bool bq76930_use_internal_thermistor;
     

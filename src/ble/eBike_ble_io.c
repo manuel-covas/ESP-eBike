@@ -32,7 +32,12 @@ void eBike_ble_io_recieve(void* p) {
     struct gatts_write_evt_param* parameters = (struct gatts_write_evt_param*) p;
     uint8_t* data = parameters->value;
     uint16_t length = parameters->len;
-    eBike_response_t response;
+    eBike_response_t response = {
+        .eBike_err = {
+            .eBike_err_type = EBIKE_OK,
+            .esp_err = ESP_OK
+        }
+    };
     
     if (data == NULL || length < 1) goto too_short;
     
@@ -70,8 +75,6 @@ void eBike_ble_io_recieve(void* p) {
 
             memset(&response, 0, sizeof(eBike_response_t));
             response.eBike_response = EBIKE_COMMAND_GET_ADC_CHARACTERISTICS;
-            response.eBike_err_type = EBIKE_OK;
-            response.esp_err = ESP_OK;
             
             eBike_ble_send_command_response(response, (uint8_t*)&adc_characteristics, sizeof(bq76930_adc_characteristics_t));
 
@@ -83,8 +86,6 @@ void eBike_ble_io_recieve(void* p) {
             
             memset(&response, 0, sizeof(eBike_response_t));
             response.eBike_response = EBIKE_COMMAND_AUTH_GET_CHALLENGE;
-            response.eBike_err_type = EBIKE_OK;
-            response.esp_err = ESP_OK;
 
             eBike_ble_send_command_response(response, eBike_auth_get_challenge(), CONFIG_EBIKE_AUTH_CHALLENGE_LENGTH);
             printf("[Auth] - Current challenge: ");
