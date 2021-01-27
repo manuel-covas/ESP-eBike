@@ -45,7 +45,7 @@ void eBike_ble_io_recieve(void* p) {
     switch (*data) {
 
         case EBIKE_COMMAND_LOG_RETRIEVE:
-            xTaskCreate(eBike_log_send, "Log sender", 1600, NULL, tskIDLE_PRIORITY, NULL);
+            eBike_log_send();
             command_locked = false;
         break;
 
@@ -86,7 +86,7 @@ void eBike_ble_io_recieve(void* p) {
             
             memset(&response, 0, sizeof(eBike_response_t));
             response.eBike_response = EBIKE_COMMAND_AUTH_GET_CHALLENGE;
-
+            
             eBike_ble_send_command_response(response, eBike_auth_get_challenge(), CONFIG_EBIKE_AUTH_CHALLENGE_LENGTH);
             printf("[Auth] - Current challenge: ");
             bytes_to_hex(eBike_auth_get_challenge(), CONFIG_EBIKE_AUTH_CHALLENGE_LENGTH);
@@ -162,7 +162,7 @@ void eBike_ble_execute_authed_command(eBike_authed_command_t authed_command) {
             response[1] = eBike_err.esp_err;
             response[2] = eBike_err.eBike_err_type;
 
-            eBike_ble_tx(response, 3);
+            eBike_queue_ble_message(response, 3, true);
             free(response);
 
             if (eBike_err.eBike_err_type != EBIKE_OK) {
@@ -195,13 +195,13 @@ too_short:
 
 void eBike_ble_send_command_response(eBike_response_t command_response, uint8_t* response_data, size_t response_data_length) {
 
-    size_t response_length = sizeof(eBike_response_t) + response_data_length;
-    uint8_t* response = malloc(response_length);
+    size_t length = sizeof(eBike_response_t) + response_data_length;
+    uint8_t* response = malloc(length);
 
     memcpy(response, &command_response, sizeof(eBike_response_t));
     if (response_data_length > 0)
         memcpy(response + sizeof(eBike_response_t), response_data, response_data_length);
 
-    eBike_ble_tx(response, response_length);
+    eBike_queue_ble_message(response, length, true);
     free(response);
 }

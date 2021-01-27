@@ -53,7 +53,7 @@ void eBike_log_clear() {
 }
 
 
-void eBike_log_send(void* parameters) {
+void eBike_log_send() {
     eBike_err_t eBike_err;
     eBike_response_t response = {
         .eBike_response = EBIKE_COMMAND_LOG_RETRIEVE,
@@ -65,8 +65,8 @@ void eBike_log_send(void* parameters) {
 
     if (!log_inited || log_data == NULL || log_index < 1) {
 
-        printf("[Log] - Not sending log. (%i bytes)\n", log_index);
-        eBike_err = eBike_ble_tx((uint8_t*) &response, sizeof(eBike_response_t));
+        printf("[Log] - No log to send. (%i bytes)\n", log_index);
+        eBike_err = eBike_queue_ble_message((uint8_t*) &response, sizeof(eBike_response_t), true);
 
         if (eBike_err.eBike_err_type != EBIKE_OK || eBike_err.esp_err != ESP_OK)
             printf("[Log] - BLE response send failed:\n"
@@ -86,33 +86,24 @@ void eBike_log_send(void* parameters) {
             uint8_t* response_buffer = malloc(sizeof(eBike_response_t) + chunk_length);
             if (response_buffer == NULL) {
                 printf("[Log] - malloc(%i) failed!\n", sizeof(eBike_response_t) + chunk_length);
-                goto eBike_clean;
+                return;
             }
             
             memcpy(response_buffer, &response, sizeof(eBike_response_t));
             memcpy(response_buffer + sizeof(eBike_response_t), log_data + sending_index, chunk_length);
             sending_index += chunk_length;
 
-            eBike_err = eBike_ble_tx(response_buffer, sizeof(eBike_response_t) + chunk_length);
+            eBike_err = eBike_queue_ble_message(response_buffer, sizeof(eBike_response_t) + chunk_length, true);
             free(response_buffer);
 
             if (eBike_err.eBike_err_type != EBIKE_OK || eBike_err.esp_err != ESP_OK) {
                 printf("[Log] - BLE response send failed:\n"
                        "    ESP-eBike error: %s\n"
                        "    ESP_ERR: %s\n", eBike_err_to_name(eBike_err.eBike_err_type), esp_err_to_name(eBike_err.esp_err));
-                goto eBike_clean;
-            }else{
-                printf("[Log] - Sent %i bytes, %i left.\n", chunk_length, log_index - sending_index);
+                return;
             }
-
-            vTaskDelay(100 / portTICK_PERIOD_MS);
         }
+        printf("[Log] - Sent log. Clearing.\n");
+        eBike_log_clear();
     }
-
-    printf("[LOG] - Sent log. Clearing.\n");
-    eBike_log_clear();
-
-eBike_clean:
-    printf("[Task] - Log task high water: %i\n", uxTaskGetStackHighWaterMark(NULL));
-    vTaskDelete(NULL);
 }
