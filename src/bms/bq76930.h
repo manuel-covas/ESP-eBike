@@ -31,7 +31,7 @@ const char* bq76930_register_to_name(bq76930_register_t register_address);
 uint8_t bq76930_sizeof_register(bq76930_register_t register_address);
 
 
-typedef struct bq76930_sys_stat_t {
+typedef struct __attribute__((__packed__)) bq76930_sys_stat_t {
     bool overcurrent_discharge:1;
     bool shortcircuit_discharge:1;
     bool overvoltage:1;
@@ -42,7 +42,7 @@ typedef struct bq76930_sys_stat_t {
     bool coulomb_counter_ready:1;
 } bq76930_sys_stat_t;
 
-typedef struct bq76930_cellbal_t {
+typedef struct __attribute__((__packed__)) bq76930_cellbal_t {
     bool cell_1:1;
     bool cell_2:1;
     bool cell_3:1;
@@ -56,7 +56,7 @@ typedef struct bq76930_cellbal_t {
     bool cell_10:1;
 } bq76930_cellbal_t;
 
-typedef struct bq76930_sys_ctrl_1_t {
+typedef struct __attribute__((__packed__)) bq76930_sys_ctrl_1_t {
     bool shutdown_b:1;
     bool shutdown_a:1;
     bool reserved_1:1;
@@ -66,7 +66,7 @@ typedef struct bq76930_sys_ctrl_1_t {
     bool load_present:1;
 } bq76930_sys_ctrl_1_t;
 
-typedef struct bq76930_sys_ctrl_2_t {
+typedef struct __attribute__((__packed__)) bq76930_sys_ctrl_2_t {
     bool charge_on:1;
     bool discharge_on:1;
     uint8_t reserved_3:3;
@@ -75,29 +75,30 @@ typedef struct bq76930_sys_ctrl_2_t {
     bool disable_delays:1;
 } bq76930_sys_ctrl_2_t;
 
-typedef struct bq76930_protect_t {
+typedef struct __attribute__((__packed__)) bq76930_protect_t {
     uint8_t short_circuit_threshold:3;
     uint8_t short_circuit_delay:2;
     uint8_t reserved_1:2;
     bool double_thresholds:1;
     uint8_t overcurrent_threshold:4;
     uint8_t overcurrent_delay:3;
-    uint8_t reserved_2:5;
+    uint8_t reserved_2:1;
+    uint8_t reserved_3:4;
     uint8_t overvoltage_delay:2;
     uint8_t undervoltage_delay:2;
 } bq76930_protect_t;
 
-typedef struct bq76930_ov_uv_trip_t {
+typedef struct __attribute__((__packed__)) bq76930_ov_uv_trip_t {
     uint8_t overvoltage_threshold;
     uint8_t undervoltage_threshold;
 } bq76930_ov_uv_trip_t;
 
 // Must be set to 0x19
-typedef struct bq76930_cc_cfg_t {
+typedef struct __attribute__((__packed__)) bq76930_cc_cfg_t {
     uint8_t coulomb_counter_config:6;
 } bq76930_cc_cfg_t;
 
-typedef struct bq76930_cell_voltages_t {
+typedef struct __attribute__((__packed__)) bq76930_cell_voltages_t {
     uint8_t VC1_HI:6;
     uint8_t reserved_1:2;
     uint8_t VC1_LO;
@@ -130,40 +131,40 @@ typedef struct bq76930_cell_voltages_t {
     uint8_t VC10_LO;
 } bq76930_cell_voltages_t;
 
-typedef struct bq76930_bat_voltage_t {
+typedef struct __attribute__((__packed__)) bq76930_bat_voltage_t {
     uint16_t battery_voltge;
 } bq76930_bat_voltage_t;
 
-typedef struct bq76930_ts1_t {
+typedef struct __attribute__((__packed__)) bq76930_ts1_t {
     uint8_t TS1_HI:6;
     uint8_t TS1_LO;
 } bq76930_ts1_t;
 
-typedef struct bq76930_ts2_t {
+typedef struct __attribute__((__packed__)) bq76930_ts2_t {
     uint8_t TS2_HI:6;
     uint8_t TS2_LO;
 } bq76930_ts2_t;
 
-typedef struct bq76930_coulomb_counter_t {
+typedef struct __attribute__((__packed__)) bq76930_coulomb_counter_t {
     uint16_t cc_reading;
 } bq76930_coulomb_counter_t;
 
-typedef struct bq76930_adc_gain_1_t {
+typedef struct __attribute__((__packed__)) bq76930_adc_gain_1_t {
     uint8_t reserved_1:2;
     uint8_t adc_gain_1:2;
 } bq76930_adc_gain_1_t;
 
-typedef struct bq76930_adc_gain_2_t {
+typedef struct __attribute__((__packed__)) bq76930_adc_gain_2_t {
     uint8_t reserved_1:5;
     uint8_t adc_gain_2:3;
 } bq76930_adc_gain_2_t;
 
-typedef struct bq76930_adc_offset_t {
+typedef struct __attribute__((__packed__)) bq76930_adc_offset_t {
     int8_t adc_offset;
 } bq76930_adc_offset_t;
 
 
-typedef struct bq76930_adc_characteristics_t {
+typedef struct __attribute__((__packed__)) bq76930_adc_characteristics_t {
     double shunt_value;
     int adc_gain_microvolts;
     int adc_offset_microvolts;

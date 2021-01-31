@@ -39,7 +39,7 @@ eBike_err_t eBike_nvs_settings_get(eBike_settings_t* pointer) {
 
     EBIKE_HANDLE_ERROR(nvs_get_blob(eBike_nvs_handle, EBIKE_NVS_SETTIGNS_KEY, &result, &length), EBIKE_NVS_SETTINGS_GET_FAIL, eBike_err);
 
-    uint32_t crc = xcrc32((uint8_t*) &result, sizeof(eBike_settings_t) - 4);
+    uint32_t crc = xcrc32((uint8_t*) &result, sizeof(eBike_settings_t) - sizeof(result.crc32));
 
     if (crc != result.crc32) {
         eBike_err.eBike_err_type = EBIKE_NVS_SETTINGS_CRC_MISMATCH;

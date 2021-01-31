@@ -28,9 +28,12 @@ typedef enum {
     EBIKE_BLE_TX_BAD_ARGUMENTS,                       // BLE Transmit: Incorrect parameters passed to eBike_ble_tx()
     EBIKE_BLE_TX_MALLOC_FAIL,                         // BLE Transmit: Malloc failed in eBike_queue_ble_message()
     EBIKE_BLE_TX_QUEUE_FAIL,                          // BLE Transmit: Failed to add BLE message to outgoing queue.
-    EBIKE_LOG_INIT_MALLOC_FAIL,                       // BLE Log Init: Failed to malloc for the log's buffer failed.
+    EBIKE_BLE_COMMAND_TOO_SHORT,                      // BLE Command: Received data was too short.
+    EBIKE_LOG_INIT_MALLOC_FAIL,                       // BLE Log Init: malloc for the log's buffer failed.
+    EBIKE_LOG_TX_MALLOC_FAIL,                         // BLE Log Transmit: malloc for a log chunk failed in eBike_log_send()
     EBIKE_AUTH_INIT_MALLOC_FAIL,                      // Authentication Init: Malloc failed
     EBIKE_AUTH_INIT_PARSE_KEY_FAIL,                   // Authentication Init: Parsing of built in public key failed.
+    EBIKE_AUTHED_COMMAND_FAIL,                        // Authentication: Signature verification failed.
     EBIKE_NVS_SETTINGS_GET_FAIL,                      // NVS Settings: Read from NVS failed.
     EBIKE_NVS_SETTINGS_PUT_FAIL,                      // NVS Settings: Write to NVS failed.
     EBIKE_NVS_SETTINGS_CRC_MISMATCH,                  // NVS Settings: CRC check failed. Could happen when reading or writing settings.

@@ -1,6 +1,8 @@
 #ifndef EBIKE_BLE_IO_H
 #define EBIKE_BLE_IO_H
 
+#include <esp_gatts_api.h>
+
 typedef enum {
     EBIKE_COMMAND_NONE,
     EBIKE_COMMAND_LOG_RETRIEVE,
@@ -14,21 +16,14 @@ eBike_command_t;
 
 
 typedef struct __attribute__((__packed__)) eBike_authed_command_t {
-    uint8_t* authed_command;
-    uint8_t authed_command_length;
+    uint8_t* command;
+    uint16_t length;
     uint8_t* signature;
     uint16_t signature_length;
 }
 eBike_authed_command_t;
 
 
-typedef struct __attribute__((__packed__)) eBike_response_t {
-    uint8_t eBike_response;
-    eBike_err_t eBike_err;
-}
-eBike_response_t;
-
-
-void eBike_ble_io_recieve(void* p);
+void eBike_ble_io_recieve(struct gatts_write_evt_param* p);
 
 #endif

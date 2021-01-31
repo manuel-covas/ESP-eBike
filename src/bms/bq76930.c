@@ -237,17 +237,17 @@ eBike_err_t bq76930_write_register(bq76930_register_t register_address, uint8_t*
 
 
 double bq76930_settings_overcurrent_amps(eBike_settings_t eBike_settings) {
-    return (overcurrent_table[eBike_settings.bq76930_double_thresholds * 16 + eBike_settings.bq76930_overcurrent_threshold] / 1000) / adc_characteristics.shunt_value;
+    return (((double) overcurrent_table[(eBike_settings.bq76930_double_thresholds ? 16 : 0) + eBike_settings.bq76930_overcurrent_threshold]) / 1000) / adc_characteristics.shunt_value;
 }
 
 int bq76930_settings_overcurrent_delay_ms(eBike_settings_t eBike_settings) {
     uint8_t code = eBike_settings.bq76930_overcurrent_delay;
-    return code < 1 ? 8 : 20 * (int) pow(2, code - 1);
+    return code < 1 ? 8 : (20 * (int) pow(2, code - 1));
 }
 
 
 double bq76930_settings_shortcircuit_amps(eBike_settings_t eBike_settings) {
-    return (shortcircuit_table[eBike_settings.bq76930_double_thresholds * 8 + eBike_settings.bq76930_short_circuit_threshold] / 1000) / adc_characteristics.shunt_value;
+    return (((double) shortcircuit_table[(eBike_settings.bq76930_double_thresholds ? 8 : 0) + eBike_settings.bq76930_short_circuit_threshold]) / 1000) / adc_characteristics.shunt_value;
 }
 
 int bq76930_settings_shortcircuit_delay_us(eBike_settings_t eBike_settings) {
@@ -258,7 +258,7 @@ int bq76930_settings_shortcircuit_delay_us(eBike_settings_t eBike_settings) {
 
 double bq76930_settings_underoltage_trip_volts(eBike_settings_t eBike_settings) {
     int adc_mapping = (0b1 << 12) | (eBike_settings.bq76930_undervoltage_threshold << 4);
-    return (double) (adc_mapping * adc_characteristics.adc_gain_microvolts + adc_characteristics.adc_offset_microvolts) / 1000000;
+    return ((double) (adc_mapping * adc_characteristics.adc_gain_microvolts + adc_characteristics.adc_offset_microvolts)) / 1000000;
 }
 
 int bq76930_settings_undervoltage_delay_seconds(eBike_settings_t eBike_settings) {
@@ -269,7 +269,7 @@ int bq76930_settings_undervoltage_delay_seconds(eBike_settings_t eBike_settings)
 
 double bq76930_settings_overvoltage_trip_volts(eBike_settings_t eBike_settings) {
     int adc_mapping = (0b10 << 12) | (eBike_settings.bq76930_overvoltage_threshold << 4) | 0b1000;
-    return (double) (adc_mapping * adc_characteristics.adc_gain_microvolts + adc_characteristics.adc_offset_microvolts) / 1000000;
+    return ((double) (adc_mapping * adc_characteristics.adc_gain_microvolts + adc_characteristics.adc_offset_microvolts)) / 1000000;
 }
 
 int bq76930_settings_overvoltage_delay_seconds(eBike_settings_t eBike_settings) {

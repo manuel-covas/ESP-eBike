@@ -14,7 +14,7 @@
 
 void eBike_auth_refresh_challenge();
 
-const unsigned char* public_key = (unsigned char *) "-----BEGIN RSA PUBLIC KEY-----\n" CONFIG_AUTH_RSA_PUBLIC_KEY "\n-----END RSA PUBLIC KEY-----\n";
+const unsigned char* public_key = (unsigned char *) "-----BEGIN PUBLIC KEY-----\n" CONFIG_AUTH_RSA_PUBLIC_KEY "\n-----END PUBLIC KEY-----";
 const mbedtls_md_info_t* hash_info;
 uint8_t* current_challenge;
 mbedtls_pk_context rsa_context;
@@ -58,28 +58,30 @@ uint8_t* eBike_auth_get_challenge() {
 }
 
 
-bool eBike_auth_solve_challenge(unsigned char* message, size_t message_length, const unsigned char* signature, size_t signature_length) {
+bool eBike_auth_solve_challenge(unsigned char* authed_cmd, size_t authed_cmd_length, const unsigned char* signature, size_t signature_length) {
     
     int error = 0;
     char* mbedtls_error_message = calloc(100, 1);
     char* error_message = calloc(100, 1);
-    char* signed_content = calloc(message_length + CONFIG_EBIKE_AUTH_CHALLENGE_LENGTH, 1);
+    char* signed_content = calloc(authed_cmd_length + CONFIG_EBIKE_AUTH_CHALLENGE_LENGTH, 1);
     unsigned char* hash = calloc(hash_info->size, 1);
 
     if (mbedtls_error_message == NULL || error_message == NULL || signed_content == NULL || hash == NULL) {
+        error = -1;
+
         char* msg = "[Auth] - Malloc to carry out verification failed!\n";
         eBike_log_add(msg, strlen(msg));
         goto eBike_clean;
     }
 
-    memcpy(signed_content, message, message_length);
-    memcpy(signed_content + message_length, current_challenge, CONFIG_EBIKE_AUTH_CHALLENGE_LENGTH);
+    memcpy(signed_content, authed_cmd, authed_cmd_length);
+    memcpy(signed_content + authed_cmd_length, current_challenge, CONFIG_EBIKE_AUTH_CHALLENGE_LENGTH);
 
-    error = mbedtls_md(hash_info, (unsigned char*) signed_content, message_length + CONFIG_EBIKE_AUTH_CHALLENGE_LENGTH, hash);
+    error = mbedtls_md(hash_info, (unsigned char*) signed_content, authed_cmd_length + CONFIG_EBIKE_AUTH_CHALLENGE_LENGTH, hash);
 
     if (error != 0) {
         mbedtls_strerror(error, mbedtls_error_message, 99);
-        strcat(error_message, "[Auth] - Error hashing message: ");
+        strcat(error_message, "[Auth] - Error hashing authed command: ");
         goto challenge_failed;
     }  
 
@@ -90,9 +92,8 @@ bool eBike_auth_solve_challenge(unsigned char* message, size_t message_length, c
         strcat(error_message, "[Auth] - Signature verification failed: ");
         goto challenge_failed;
     }
-
-    eBike_auth_refresh_challenge();
-    return error == 0;
+    
+    goto eBike_clean;
 
 challenge_failed:
     if (error_message != NULL || mbedtls_error_message != NULL) {
@@ -107,5 +108,5 @@ eBike_clean:
     if (hash != NULL) free(hash);
 
     eBike_auth_refresh_challenge();
-    return false;
+    return error == 0;
 }

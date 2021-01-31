@@ -66,7 +66,7 @@ void eBike_log_send() {
     if (!log_inited || log_data == NULL || log_index < 1) {
 
         printf("[Log] - No log to send. (%i bytes)\n", log_index);
-        eBike_err = eBike_queue_ble_message((uint8_t*) &response, sizeof(eBike_response_t), true);
+        eBike_err = eBike_queue_ble_message(&response, NULL, 0, true);
 
         if (eBike_err.eBike_err_type != EBIKE_OK || eBike_err.esp_err != ESP_OK)
             printf("[Log] - BLE response send failed:\n"
@@ -81,20 +81,24 @@ void eBike_log_send() {
         while (sending_index < log_index) {
 
             int chunk_length = log_index - sending_index;
-            if (chunk_length > 500) chunk_length = 500;
+            if (chunk_length > 500)
+                chunk_length = 500;
             
-            uint8_t* response_buffer = malloc(sizeof(eBike_response_t) + chunk_length);
-            if (response_buffer == NULL) {
-                printf("[Log] - malloc(%i) failed!\n", sizeof(eBike_response_t) + chunk_length);
+            uint8_t* log_chunk = malloc(chunk_length);
+
+            if (log_chunk == NULL) {
+                response.eBike_err.eBike_err_type = EBIKE_LOG_TX_MALLOC_FAIL;
+                
+                eBike_queue_ble_message(&response, NULL, 0, true);
+                printf("[Log] - malloc(%i) failed!\n", chunk_length);
                 return;
             }
             
-            memcpy(response_buffer, &response, sizeof(eBike_response_t));
-            memcpy(response_buffer + sizeof(eBike_response_t), log_data + sending_index, chunk_length);
+            memcpy(log_chunk, log_data + sending_index, chunk_length);
             sending_index += chunk_length;
 
-            eBike_err = eBike_queue_ble_message(response_buffer, sizeof(eBike_response_t) + chunk_length, true);
-            free(response_buffer);
+            eBike_err = eBike_queue_ble_message(&response, log_chunk, chunk_length, true);
+            free(log_chunk);
 
             if (eBike_err.eBike_err_type != EBIKE_OK || eBike_err.esp_err != ESP_OK) {
                 printf("[Log] - BLE response send failed:\n"

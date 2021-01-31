@@ -144,7 +144,6 @@ void eBike_check_advertising_ready() {
 QueueHandle_t eBike_ble_outgoing_queue_handle;
 TaskHandle_t eBike_ble_outgoing_task_handle;
 
-
 static uint32_t indicate_complete_flag   = 0b1,
                 client_disconnected_flag = 0b10,
                 notfication_value = 0;
@@ -194,7 +193,7 @@ get_from_queue:
     }
 }
 
-eBike_err_t eBike_queue_ble_message(uint8_t* data, size_t length, bool is_indicate) {
+eBike_err_t eBike_queue_ble_message(eBike_response_t* command_response, void* response_data, size_t response_data_length, bool is_indicate) {
     
     eBike_err_t eBike_err = {
         .esp_err = ESP_OK,
@@ -204,23 +203,26 @@ eBike_err_t eBike_queue_ble_message(uint8_t* data, size_t length, bool is_indica
     if (!eBike_ble_connected) {
         eBike_err.eBike_err_type = EBIKE_BLE_TX_NOT_CONNECTED;
         return eBike_err;
-    }else if (data == NULL || length < 1) {
+    }else if (command_response == NULL || (response_data_length > 0 && response_data == NULL)) {
         eBike_err.eBike_err_type = EBIKE_BLE_TX_BAD_ARGUMENTS;
         return eBike_err;
     }
 
-    uint8_t* data_copy = malloc(length);
+    size_t msg_length = sizeof(eBike_response_t) + response_data_length;
+    uint8_t* msg_buffer = malloc(msg_length);
 
-    if (data_copy == NULL) {
+    if (msg_buffer == NULL) {
         eBike_err.eBike_err_type = EBIKE_BLE_TX_MALLOC_FAIL;
         return eBike_err;
     }
 
-    memcpy(data_copy, data, length);
+    memcpy(msg_buffer, command_response, sizeof(eBike_response_t));
+    if (response_data_length > 0)
+        memcpy(msg_buffer + sizeof(eBike_response_t), response_data, response_data_length);
 
     eBike_ble_message_t message = {
-        .data = data_copy,
-        .length = length,
+        .data = msg_buffer,
+        .length = msg_length,
         .is_indicate = is_indicate
     };
 

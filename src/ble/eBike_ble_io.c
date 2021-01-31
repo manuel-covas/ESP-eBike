@@ -14,24 +14,17 @@
 #include <bq76930.h>
 
 void eBike_ble_execute_authed_command(eBike_authed_command_t authed_command);
-void eBike_ble_send_command_response(eBike_response_t command_response, uint8_t* response_data, size_t response_data_length);
 
 
 char* data_too_short_message = "[BLE] - Data sent was too short for command.\n";
 char* command_signature_inavlid = "[BLE] - Authed command signature verification failed.\n";
 
-bool command_locked = false;
 
-
-
-void eBike_ble_io_recieve(void* p) {
-
-    if (command_locked) return;
-    command_locked = true;
+void eBike_ble_io_recieve(struct gatts_write_evt_param* p) {
 
     struct gatts_write_evt_param* parameters = (struct gatts_write_evt_param*) p;
     uint8_t* data = parameters->value;
-    uint16_t length = parameters->len;
+    uint16_t data_length = parameters->len;
     eBike_response_t response = {
         .eBike_err = {
             .eBike_err_type = EBIKE_OK,
@@ -39,60 +32,41 @@ void eBike_ble_io_recieve(void* p) {
         }
     };
     
-    if (data == NULL || length < 1) goto too_short;
-    
+    if (data == NULL || data_length < 1) return;
+    response.eBike_response = *data;
 
-    switch (*data) {
+
+    switch (response.eBike_response) {
 
         case EBIKE_COMMAND_LOG_RETRIEVE:
             eBike_log_send();
-            command_locked = false;
         break;
-
 
         case EBIKE_COMMAND_GET_SETTINGS:
             ;
             eBike_settings_t eBike_settings;
-            eBike_err_t eBike_err = eBike_nvs_settings_get(&eBike_settings);
-
-            memset(&response, 0, sizeof(eBike_response_t));
-            response.eBike_response = EBIKE_COMMAND_GET_SETTINGS;
-            response.eBike_err = eBike_err;
+            response.eBike_err = eBike_nvs_settings_get(&eBike_settings);
             
-            if (eBike_err.eBike_err_type == EBIKE_OK) {
-                eBike_ble_send_command_response(response, (uint8_t*)&eBike_settings, sizeof(eBike_settings_t));
+            if (response.eBike_err.eBike_err_type == EBIKE_OK) {
+                eBike_queue_ble_message(&response, &eBike_settings, sizeof(eBike_settings_t), true);
             }else{
-                eBike_ble_send_command_response(response, NULL, 0);
+                eBike_queue_ble_message(&response, NULL, 0, true);
             }
-            
-            command_locked = false;
         break;
 
 
         case EBIKE_COMMAND_GET_ADC_CHARACTERISTICS:
             ;
             bq76930_adc_characteristics_t adc_characteristics = bq76930_get_adc_characteristics();
-
-            memset(&response, 0, sizeof(eBike_response_t));
-            response.eBike_response = EBIKE_COMMAND_GET_ADC_CHARACTERISTICS;
-            
-            eBike_ble_send_command_response(response, (uint8_t*)&adc_characteristics, sizeof(bq76930_adc_characteristics_t));
-
-            command_locked = false;
+            eBike_queue_ble_message(&response, &adc_characteristics, sizeof(bq76930_adc_characteristics_t), true);
         break;
 
 
         case EBIKE_COMMAND_AUTH_GET_CHALLENGE:
-            
-            memset(&response, 0, sizeof(eBike_response_t));
-            response.eBike_response = EBIKE_COMMAND_AUTH_GET_CHALLENGE;
-            
-            eBike_ble_send_command_response(response, eBike_auth_get_challenge(), CONFIG_EBIKE_AUTH_CHALLENGE_LENGTH);
+            eBike_queue_ble_message(&response, eBike_auth_get_challenge(), CONFIG_EBIKE_AUTH_CHALLENGE_LENGTH, true);
             printf("[Auth] - Current challenge: ");
             bytes_to_hex(eBike_auth_get_challenge(), CONFIG_EBIKE_AUTH_CHALLENGE_LENGTH);
             printf("\n");
-
-            command_locked = false;
         break;
 
 
@@ -100,25 +74,36 @@ void eBike_ble_io_recieve(void* p) {
             ;
             eBike_authed_command_t authed_command;
             
-            if (length < 2) goto too_short;
-            authed_command.authed_command_length = *(data + 1);
+            if (data_length < 3)
+                goto too_short;
 
-            if (length < 2 + authed_command.authed_command_length) goto too_short;
-            authed_command.authed_command = data + 2;
+            authed_command.length = *(data + 1) * 256 + *(data + 2);
+            
+            if (authed_command.length < 1 || data_length < 3 + authed_command.length + 2)
+                goto too_short;
 
-            if (length < 2 + authed_command.authed_command_length + 2) goto too_short;
-            authed_command.signature_length = *((uint16_t*)(data + 2 + authed_command.authed_command_length));
+            authed_command.command = data + 3;
+            authed_command.signature_length = *(authed_command.command + authed_command.length) * 256 + *(authed_command.command + authed_command.length + 1);
+
+            if (data_length < 3 + authed_command.length + 2 + authed_command.signature_length)
+                goto too_short;
             
-            if (length < 2 + authed_command.authed_command_length + 2 + authed_command.signature_length) goto too_short;
-            authed_command.signature = (data + 2 + authed_command.authed_command_length + 2);
+            authed_command.signature = data + 3 + authed_command.length + 2;
             
-            if (eBike_auth_solve_challenge(authed_command.authed_command, authed_command.authed_command_length, authed_command.signature, authed_command.signature_length)) {
-                printf("[BLE] - Authed command verified, executing...\n");
+            if (eBike_auth_solve_challenge(authed_command.command, authed_command.length, authed_command.signature, authed_command.signature_length)) {
                 eBike_ble_execute_authed_command(authed_command);
             }else{
+                response.eBike_err.eBike_err_type = EBIKE_AUTHED_COMMAND_FAIL;
                 eBike_log_add(command_signature_inavlid, strlen(command_signature_inavlid));
             }
-            command_locked = false;
+
+            eBike_queue_ble_message(&response, NULL, 0, true);
+            return;
+
+too_short:
+            response.eBike_err.eBike_err_type = EBIKE_BLE_COMMAND_TOO_SHORT;
+            eBike_log_add(data_too_short_message, strlen(data_too_short_message));
+            eBike_queue_ble_message(&response, NULL, 0, true);
         break;
 
 
@@ -128,42 +113,35 @@ void eBike_ble_io_recieve(void* p) {
             asprintf(&message, "[BLE] - Unkown command %02X.\n", *data);
             eBike_log_add(message, strlen(message));
             free(message);
-            command_locked = false;
         break;
     }
 
     return;
-
-too_short:
-    eBike_log_add(data_too_short_message, strlen(data_too_short_message));
-    command_locked = false;
 }
 
 
 void eBike_ble_execute_authed_command(eBike_authed_command_t authed_command) {
 
-    uint8_t* response;
     char* message;
-
-    switch (*authed_command.authed_command) {
+    eBike_response_t response = {
+        .eBike_err = {
+            .eBike_err_type = EBIKE_OK,
+            .esp_err = ESP_OK
+        }
+    };
+    
+    switch (*authed_command.command) {
 
         case EBIKE_COMMAND_AUTHED_COMMAND_PUT_SETTINGS:
-            ;
-            size_t length = (sizeof(eBike_settings_t) + 1);
-
-            if (authed_command.authed_command_length < length)
-                goto too_short;
             
-            eBike_settings_t settings = *(eBike_settings_t*) (authed_command.authed_command + 1);
-            eBike_err_t eBike_err = eBike_nvs_settings_put(&settings);
+            response.eBike_response = EBIKE_COMMAND_AUTHED_COMMAND_PUT_SETTINGS;
+            
+            if (authed_command.length < sizeof(eBike_settings_t) + 1) goto too_short;
 
-            response = malloc(3);
-            response[0] = EBIKE_COMMAND_AUTHED_COMMAND_PUT_SETTINGS;
-            response[1] = eBike_err.esp_err;
-            response[2] = eBike_err.eBike_err_type;
+            eBike_err_t eBike_err = eBike_nvs_settings_put(authed_command.command + 1);
+            response.eBike_err = eBike_err;
 
-            eBike_queue_ble_message(response, 3, true);
-            free(response);
+            eBike_queue_ble_message(&response, NULL, 0, true);
 
             if (eBike_err.eBike_err_type != EBIKE_OK) {
                 asprintf(&message, "[NVS] - Saving of NVS settings failed: eBike_err: %s (%i) esp_err: %s (%i)\n", eBike_err_to_name(eBike_err.eBike_err_type), eBike_err.eBike_err_type, esp_err_to_name(eBike_err.esp_err), eBike_err.esp_err);
@@ -172,17 +150,13 @@ void eBike_ble_execute_authed_command(eBike_authed_command_t authed_command) {
             }
             eBike_log_add(message, strlen(message));
             free(message);
-            
-            command_locked = false;
         break;
 
         default:
             
-            asprintf(&message, "[BLE] - Unknown command %02X.\n", *authed_command.authed_command);
+            asprintf(&message, "[BLE] - Unknown command %02X.\n", *authed_command.command);
             eBike_log_add(message, strlen(message));
             free(message);
-
-            command_locked = false;
         break;
     }
 
@@ -190,18 +164,4 @@ void eBike_ble_execute_authed_command(eBike_authed_command_t authed_command) {
 
 too_short:
     eBike_log_add(data_too_short_message, strlen(data_too_short_message));
-}
-
-
-void eBike_ble_send_command_response(eBike_response_t command_response, uint8_t* response_data, size_t response_data_length) {
-
-    size_t length = sizeof(eBike_response_t) + response_data_length;
-    uint8_t* response = malloc(length);
-
-    memcpy(response, &command_response, sizeof(eBike_response_t));
-    if (response_data_length > 0)
-        memcpy(response + sizeof(eBike_response_t), response_data, response_data_length);
-
-    eBike_queue_ble_message(response, length, true);
-    free(response);
 }
