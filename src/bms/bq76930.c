@@ -15,10 +15,10 @@ bq76930_adc_characteristics_t adc_characteristics = {
     .adc_offset_microvolts = 0
 };
 
-uint8_t overcurrent_table[32] = {8, 11, 14, 17, 19, 22, 25, 28, 31, 33, 36, 39, 42, 44, 47, 50,
+uint8_t overcurrent_table[32] = {8,  11, 14, 17, 19, 22, 25, 28, 31, 33, 36, 39, 42, 44, 47, 50,
                                  17, 22, 28, 33, 39, 44, 50, 56, 61, 67, 72, 78, 83, 89, 94, 100};
 
-uint8_t shortcircuit_table[16] = {22, 33, 44, 56, 67, 78, 89, 100,
+uint8_t shortcircuit_table[16] = {22, 33, 44, 56,  67,  78,  89,  100,
                                   44, 67, 89, 111, 133, 155, 178, 200};
 
 
@@ -241,8 +241,31 @@ double bq76930_settings_overcurrent_amps(eBike_settings_t eBike_settings) {
 }
 
 int bq76930_settings_overcurrent_delay_ms(eBike_settings_t eBike_settings) {
-    uint8_t code = eBike_settings.bq76930_overcurrent_delay;
-    return code < 1 ? 8 : (20 * (int) pow(2, code - 1));
+    switch (eBike_settings.bq76930_overcurrent_delay) {
+        case 0x00:
+            return 8;
+        case 0x01:
+            return 20;
+        case 0x02:
+            return 40;
+        case 0x03:
+            return 80;
+        case 0x04:
+            return 160;
+        case 0x05:
+            return 320;
+        case 0x06:
+            return 640;
+        case 0x07:
+            return 1280;
+        default:
+            ;
+            char* message;
+            asprintf(&message, "[BMS] - Invalid value 0x%02X for setting bq76930_overcurrent_delay!\n", eBike_settings.bq76930_overcurrent_delay);
+            eBike_log_add(message, strlen(message));
+            free(message);
+            return -1;
+    }
 }
 
 
@@ -251,8 +274,23 @@ double bq76930_settings_shortcircuit_amps(eBike_settings_t eBike_settings) {
 }
 
 int bq76930_settings_shortcircuit_delay_us(eBike_settings_t eBike_settings) {
-    uint8_t code = eBike_settings.bq76930_short_circuit_delay;
-    return code < 1 ? 70 : 100 * (int) pow(2, code - 1);
+    switch (eBike_settings.bq76930_short_circuit_delay) {
+        case 0x00:
+            return 70;
+        case 0x01:
+            return 100;
+        case 0x02:
+            return 200;
+        case 0x03:
+            return 400;
+        default:
+            ;
+            char* message;
+            asprintf(&message, "[BMS] - Invalid value 0x%02X for setting bq76930_short_circuit_delay!\n", eBike_settings.bq76930_short_circuit_delay);
+            eBike_log_add(message, strlen(message));
+            free(message);
+            return -1;
+    }
 }
 
 
@@ -262,8 +300,23 @@ double bq76930_settings_underoltage_trip_volts(eBike_settings_t eBike_settings) 
 }
 
 int bq76930_settings_undervoltage_delay_seconds(eBike_settings_t eBike_settings) {
-    uint8_t code = eBike_settings.bq76930_undervoltage_delay;
-    return code < 1 ? 1 : 4 * (int) pow(2, code - 1);
+    switch (eBike_settings.bq76930_undervoltage_delay) {
+        case 0x00:
+            return 1;
+        case 0x01:
+            return 4;
+        case 0x02:
+            return 8;
+        case 0x03:
+            return 16;
+        default:
+            ;
+            char* message;
+            asprintf(&message, "[BMS] - Invalid value 0x%02X for setting bq76930_undervoltage_delay!\n", eBike_settings.bq76930_undervoltage_delay);
+            eBike_log_add(message, strlen(message));
+            free(message);
+            return -1;
+    }
 }
 
 
@@ -273,8 +326,23 @@ double bq76930_settings_overvoltage_trip_volts(eBike_settings_t eBike_settings) 
 }
 
 int bq76930_settings_overvoltage_delay_seconds(eBike_settings_t eBike_settings) {
-    uint8_t code = eBike_settings.bq76930_overvoltage_delay;
-    return 1 * (int) pow(2, code);
+    switch (eBike_settings.bq76930_overvoltage_delay) {
+        case 0x00:
+            return 1;
+        case 0x01:
+            return 2;
+        case 0x02:
+            return 4;
+        case 0x03:
+            return 8;
+        default:
+            ;
+            char* message;
+            asprintf(&message, "[BMS] - Invalid value 0x%02X for setting bq76930_overvoltage_delay!\n", eBike_settings.bq76930_overvoltage_delay);
+            eBike_log_add(message, strlen(message));
+            free(message);
+            return -1;
+    }
 }
 
 

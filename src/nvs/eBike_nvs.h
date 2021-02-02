@@ -21,7 +21,7 @@ typedef struct __attribute__((__packed__)) eBike_settings_t {
     uint8_t bq76930_overvoltage_threshold;
     uint8_t bq76930_undervoltage_threshold;
     
-    uint32_t crc32;
+    uint32_t crc32;  // CRC-32/MPEG-2 checksum of the previous bytes (LSB)
 
 } eBike_settings_t;
 

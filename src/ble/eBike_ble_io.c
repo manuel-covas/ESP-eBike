@@ -77,13 +77,13 @@ void eBike_ble_io_recieve(struct gatts_write_evt_param* p) {
             if (data_length < 3)
                 goto too_short;
 
-            authed_command.length = *(data + 1) * 256 + *(data + 2);
+            authed_command.length = *((uint16_t*)(data + 1));
             
             if (authed_command.length < 1 || data_length < 3 + authed_command.length + 2)
                 goto too_short;
 
             authed_command.command = data + 3;
-            authed_command.signature_length = *(authed_command.command + authed_command.length) * 256 + *(authed_command.command + authed_command.length + 1);
+            authed_command.signature_length = *((uint16_t*)(authed_command.command + authed_command.length));
 
             if (data_length < 3 + authed_command.length + 2 + authed_command.signature_length)
                 goto too_short;
@@ -124,21 +124,21 @@ void eBike_ble_execute_authed_command(eBike_authed_command_t authed_command) {
 
     char* message;
     eBike_response_t response = {
+        .eBike_response = *authed_command.command,
         .eBike_err = {
             .eBike_err_type = EBIKE_OK,
             .esp_err = ESP_OK
         }
     };
     
-    switch (*authed_command.command) {
+    switch (response.eBike_response) {
 
         case EBIKE_COMMAND_AUTHED_COMMAND_PUT_SETTINGS:
             
-            response.eBike_response = EBIKE_COMMAND_AUTHED_COMMAND_PUT_SETTINGS;
-            
-            if (authed_command.length < sizeof(eBike_settings_t) + 1) goto too_short;
+            if (authed_command.length < 1 + sizeof(eBike_settings_t))
+                goto too_short;
 
-            eBike_err_t eBike_err = eBike_nvs_settings_put(authed_command.command + 1);
+            eBike_err_t eBike_err = eBike_nvs_settings_put((eBike_settings_t*) (authed_command.command + 1));
             response.eBike_err = eBike_err;
 
             eBike_queue_ble_message(&response, NULL, 0, true);
@@ -150,6 +150,11 @@ void eBike_ble_execute_authed_command(eBike_authed_command_t authed_command) {
             }
             eBike_log_add(message, strlen(message));
             free(message);
+            return;
+too_short:
+            response.eBike_err.eBike_err_type = EBIKE_BLE_COMMAND_TOO_SHORT;
+            eBike_log_add(data_too_short_message, strlen(data_too_short_message));
+            eBike_queue_ble_message(&response, NULL, 0, true);
         break;
 
         default:
@@ -161,7 +166,4 @@ void eBike_ble_execute_authed_command(eBike_authed_command_t authed_command) {
     }
 
     return;
-
-too_short:
-    eBike_log_add(data_too_short_message, strlen(data_too_short_message));
 }

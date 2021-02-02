@@ -2,7 +2,8 @@
     
 
 # ESP-eBike
-ESP32 Firmware for a DIY eBike BMS and control board.
+ESP32 Firmware for a DIY eBike BMS and control board.\
+This software is licensed under BY-NC-SA 4.0, see [LICENSE.md](LICENSE.md), for any inquiry feel free to contact me at manuel.p.covas@gmail.com
  
 ## Project Configuration
 The default values are set according to this circuit board.\
@@ -42,6 +43,7 @@ Uppon finishing service discovery the connecting device should:
 - Set the connection priority to `HIGH` (*better performance when streaming stats*)
 - Subscribe to / enable indications from the eBike TX Characteristic (*often needed*)
 
+
 ### Format
 Each write / indicate event contains only one, full, packet.\
 Packets are formatted as follows when writing:
@@ -57,6 +59,26 @@ Packets are formatted as follows when receiving:
 |:---------------:|:------------------------:|:---------------------------:|:----------------------:|
 | **Length**      | 1 byte                   | `sizeof(eBike_err_t)` bytes | Response dependent     |
 | **Description** | Identifies response type | eBike error struct          | Optional response data |
+
+
+### Data Structures
+
+- **eBike_err_t** - 8 bytes ([eBike_err.h](src/err/eBike_err.h))\
+ESP-eBike error struct, contains one ESP-IDF error code and one ESP-eBike error code.\
+For ESP-IDF errors refer to https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/system/esp_err.html\
+For eBike errors see [ESP-eBike Errors](#esp-ebike-errors)\
+Format:
+    |                 | ESP-IDF Error              | ESP-eBike Error                   |
+    |:---------------:|:--------------------------:|:---------------------------------:|
+    | **Length**      | 4 bytes (LSB)              | 4 bytes (LSB)                     |
+    | **Description** | Signed integer (esp_err_t) | Signed integer (eBike_err_type_t) |
+
+- **eBike_settings_t** - 14 bytes ([eBike_nvs.h](src/nvs/eBike_nvs.h))\
+ESP-eBike settings struct, contains general settings.\
+This data is kept in NVS and can be modified through BLE.\
+For interperting values regarding the BMS refer to [bq76930.c](src/bms/bq76930.c) and [BQ76930's datasheet](https://www.ti.com/lit/ds/symlink/bq76930.pdf)\
+&#9888; **Beware that misconfiguring these values could lead to battery damage and / or a fire hazard!** &#9888;
+
 
 ### Commands
 The BLE commands are listed below:
@@ -88,7 +110,7 @@ Extra data must be sent for this command. See *Authentication*.\
 Format:
     |                 | Command Byte | Authenticated Command length      | Authenticated Command          | RSA Signature length              | RSA Signature |
     |:---------------:|:------------:|:---------------------------------:|:------------------------------:|:---------------------------------:|:-------------:|
-    | **Length**      | 1 byte       | 2 bytes (MSB)                     | CMD_LEN bytes                  | 2 bytes (MSB)                     | SIG_LEN bytes |
+    | **Length**      | 1 byte       | 2 bytes (LSB)                     | CMD_LEN bytes                  | 2 bytes (LSB)                     | SIG_LEN bytes |
     | **Description** | `0x05`       | Unsigned 16 bit integer (CMD_LEN) | Command to run (nested packet) | Unsigned 16 bit integer (SIG_LEN) | RSA Signature |
 
 ### Authentication
@@ -146,7 +168,7 @@ The Authenticated BLE commands are listed below:
 - **Put Settings** - `0x06 (EBIKE_COMMAND_AUTHED_COMMAND_PUT_SETTINGS)`\
     Used to overwrite the eBike settings stored in NVS on the ESP32.\
     One `0x06` response will be sent back indicating the outcome.\
-    Extra data must consist of the eBike_settings_t struct as defined in [eBike_nvs.h](https://github.com/manuel-covas/ESP-eBike/blob/master/src/nvs/eBike_nvs.h)\
+    Extra data must consist of the eBike_settings_t struct as defined in [eBike_nvs.h](src/nvs/eBike_nvs.h)\
     Extra bytes will be ignored.\
     Format:
     |                 | Command Byte | eBike Settings                   |
@@ -154,12 +176,6 @@ The Authenticated BLE commands are listed below:
     | **Length**      | 1 byte       | `sizeof(eBike_settings_t)` bytes |
     | **Description** | `0x06`       | *eBike settings*                 |
     
-    `eBike_settings_t` format:
-
-    |                 | Command Byte | eBike Settings                   |
-    |:---------------:|:------------:|:--------------------------------:|
-    | **Data Type**   | 1 byte       | `sizeof(eBike_settings_t)` bytes |
-    | **Description** | `0x06`       | *eBike settings*                 |
 
 ### Responses
 The BLE responses are listed bellow:
@@ -175,7 +191,7 @@ The BLE responses are listed bellow:
 
 - **Get Settings Response** - `0x02 (EBIKE_COMMAND_GET_SETTINGS)`\
     Response to the Get Settings command.\
-    Contains the `eBike_settings_t` struct, as defined in [eBike_nvs.h](https://github.com/manuel-covas/ESP-eBike/blob/master/src/nvs/eBike_nvs.h), if successful, no data otherwise.\
+    Contains the `eBike_settings_t` struct, as defined in [eBike_nvs.h](src/nvs/eBike_nvs.h), if successful, no data otherwise.\
     Format:
     |            | Response Byte | eBike Error                 | Response data                              |
     |:----------:|:-------------:|:---------------------------:|:------------------------------------------:|
@@ -215,40 +231,43 @@ The BLE responses are listed bellow:
 
 
 ### ESP-eBike Errors
-These are the enums for ESP-eBike errors: ([eBike_err.h](https://github.com/manuel-covas/ESP-eBike/blob/master/src/err/eBike_err.h))
+These are the enums for ESP-eBike errors: ([eBike_err.h](src/err/eBike_err.h))
 ```c
 typedef enum {
-    EBIKE_OK = 0,                                // Success.
-    EBIKE_NVS_INIT_ERASE_FAIL,                   // NVS Init: Failed to erase flash chip.
-    EBIKE_NVS_INIT_FAIL,                         // NVS Init: ESP-IDF nvs_flash_init() failed.
-    EBIKE_NVS_INIT_OPEN_FAIL,                    // NVS Init: Failed to open NVS namespace EBIKE_NVS_NAMESPACE with mode NVS_READWRITE.
-    EBIKE_GPIO_INIT_CONFIG_FAIL,                 // GPIO Init: ESP-IDF gpio_config() failed.
-    EBIKE_BLE_INIT_OUTGOING_QUEUE_CREATE_FAIL,   // BLE Init: Outgoing message queue creation failed.
-    EBIKE_BLE_INIT_OUTGOING_TASK_CREATE_FAIL,    // BLE Init: Outgoing message task creation failed.
-    EBIKE_BLE_INIT_CONTROLLER_INIT_FAIL,         // BLE Init: Initializing bluetooth controller with BT_CONTROLLER_INIT_CONFIG_DEFAULT failed.
-    EBIKE_BLE_INIT_ENABLE_CONTROLLER_FAIL,       // BLE Init: Bluetooth controller enabling failed.
-    EBIKE_BLE_INIT_BLUEDROID_INIT_FAIL,          // BLE Init: Bluedroid stack initialization failed.
-    EBIKE_BLE_INIT_BLUEDROID_ENABLE_FAIL,        // BLE Init: Bluedroid stack enabling failed.
-    EBIKE_BLE_INIT_GAP_CALLBACK_REGISTER_FAIL,   // BLE Init: GAP callback function registration failed.
-    EBIKE_BLE_INIT_GATTS_CALLBACK_REGISTER_FAIL, // BLE Init: GATT server callback function registration failed.
-    EBIKE_BLE_INIT_GATTS_APP_REGISTER_FAIL,      // BLE Init: GATT server callback function registration failed.
-    EBIKE_BLE_INIT_SET_BT_NAME_FAIL,             // BLE Init: Failed to set device's bluetooth name.
-    EBIKE_BLE_INIT_SET_ADV_DATA_FAIL,            // BLE Init: Failed to set desired BLE advertising data.
-    EBIKE_BLE_INIT_START_ADV_FAIL,               // BLE Init: Failed to start BLE advertising.
-    EBIKE_BLE_TX_NOT_CONNECTED,                  // BLE Transmit: An attempt to send data over BLE was made but no connection was active.
-    EBIKE_BLE_TX_BAD_ARGUMENTS,                  // BLE Transmit: Incorrect parameters passed to eBike_ble_tx()
-    EBIKE_BLE_TX_MALLOC_FAIL,                    // BLE Transmit: Malloc failed in eBike_queue_ble_message()
-    EBIKE_BLE_TX_QUEUE_FAIL,                     // BLE Transmit: Failed to add BLE message to outgoing queue.
-    EBIKE_LOG_INIT_MALLOC_FAIL,                  // BLE Log Init: Failed to malloc for the log's buffer failed.
-    EBIKE_AUTH_INIT_MALLOC_FAIL,                 // Authentication Init: Malloc failed
-    EBIKE_AUTH_INIT_PARSE_KEY_FAIL,              // Authentication Init: Parsing of built in public key failed.
-    EBIKE_NVS_SETTINGS_GET_FAIL,                 // NVS Settings: Read from NVS failed.
-    EBIKE_NVS_SETTINGS_PUT_FAIL,                 // NVS Settings: Write to NVS failed.
-    EBIKE_NVS_SETTINGS_CRC_MISMATCH,             // NVS Settings: CRC check failed. Could happen when reading or writing settings.
-    EBIKE_BMS_INIT_I2C_CONFIG_FAIL,              // BMS Init: I2C driver configuring failed.
-    EBIKE_BMS_INIT_I2C_INSTALL_FAIL,             // BMS Init: I2C driver activation failed.
-    EBIKE_BMS_I2C_BUILD_COMMAND_FAIL,            // BMS I2C Communication: Failure while preparing I2C command to communicate with BQ769x0.
-    EBIKE_BMS_I2C_COMMAND_FAIL,                  // BMS I2C Communication: I2C data exchange failed. (not acknowledged or other)
-    EBIKE_BMS_I2C_CRC_MISMATCH                   // BMS I2C Communication: BQ769x0 communication CRC mismatched. (explained in the chip's datasheet)
+    EBIKE_OK = 0,                                     // Success.
+    EBIKE_NVS_INIT_ERASE_FAIL,                        // NVS Init: Failed to erase flash chip.
+    EBIKE_NVS_INIT_FAIL,                              // NVS Init: ESP-IDF nvs_flash_init() failed.
+    EBIKE_NVS_INIT_OPEN_FAIL,                         // NVS Init: Failed to open NVS namespace EBIKE_NVS_NAMESPACE with mode NVS_READWRITE.
+    EBIKE_GPIO_INIT_CONFIG_FAIL,                      // GPIO Init: ESP-IDF gpio_config() failed.
+    EBIKE_BLE_INIT_OUTGOING_QUEUE_CREATE_FAIL,        // BLE Init: Outgoing message queue creation failed.
+    EBIKE_BLE_INIT_OUTGOING_TASK_CREATE_FAIL,         // BLE Init: Outgoing message task creation failed.
+    EBIKE_BLE_INIT_CONTROLLER_INIT_FAIL,              // BLE Init: Initializing bluetooth controller with BT_CONTROLLER_INIT_CONFIG_DEFAULT failed.
+    EBIKE_BLE_INIT_ENABLE_CONTROLLER_FAIL,            // BLE Init: Bluetooth controller enabling failed.
+    EBIKE_BLE_INIT_BLUEDROID_INIT_FAIL,               // BLE Init: Bluedroid stack initialization failed.
+    EBIKE_BLE_INIT_BLUEDROID_ENABLE_FAIL,             // BLE Init: Bluedroid stack enabling failed.
+    EBIKE_BLE_INIT_GAP_CALLBACK_REGISTER_FAIL,        // BLE Init: GAP callback function registration failed.
+    EBIKE_BLE_INIT_GATTS_CALLBACK_REGISTER_FAIL,      // BLE Init: GATT server callback function registration failed.
+    EBIKE_BLE_INIT_GATTS_APP_REGISTER_FAIL,           // BLE Init: GATT server callback function registration failed.
+    EBIKE_BLE_INIT_SET_BT_NAME_FAIL,                  // BLE Init: Failed to set device's bluetooth name.
+    EBIKE_BLE_INIT_SET_ADV_DATA_FAIL,                 // BLE Init: Failed to set desired BLE advertising data.
+    EBIKE_BLE_INIT_START_ADV_FAIL,                    // BLE Init: Failed to start BLE advertising.
+    EBIKE_BLE_TX_NOT_CONNECTED,                       // BLE Transmit: An attempt to send data over BLE was made but no connection was active.
+    EBIKE_BLE_TX_BAD_ARGUMENTS,                       // BLE Transmit: Incorrect parameters passed to eBike_ble_tx()
+    EBIKE_BLE_TX_MALLOC_FAIL,                         // BLE Transmit: Malloc failed in eBike_queue_ble_message()
+    EBIKE_BLE_TX_QUEUE_FAIL,                          // BLE Transmit: Failed to add BLE message to outgoing queue.
+    EBIKE_BLE_COMMAND_TOO_SHORT,                      // BLE Command: Received data was too short.
+    EBIKE_LOG_INIT_MALLOC_FAIL,                       // BLE Log Init: malloc for the log's buffer failed.
+    EBIKE_LOG_TX_MALLOC_FAIL,                         // BLE Log Transmit: malloc for a log chunk failed in eBike_log_send()
+    EBIKE_AUTH_INIT_MALLOC_FAIL,                      // Authentication Init: Malloc failed
+    EBIKE_AUTH_INIT_PARSE_KEY_FAIL,                   // Authentication Init: Parsing of built in public key failed.
+    EBIKE_AUTHED_COMMAND_FAIL,                        // Authentication: Signature verification failed.
+    EBIKE_NVS_SETTINGS_GET_FAIL,                      // NVS Settings: Read from NVS failed.
+    EBIKE_NVS_SETTINGS_PUT_FAIL,                      // NVS Settings: Write to NVS failed.
+    EBIKE_NVS_SETTINGS_CRC_MISMATCH,                  // NVS Settings: CRC check failed. Could happen when reading or writing settings.
+    EBIKE_BMS_INIT_I2C_CONFIG_FAIL,                   // BMS Init: I2C driver configuring failed.
+    EBIKE_BMS_INIT_I2C_INSTALL_FAIL,                  // BMS Init: I2C driver activation failed.
+    EBIKE_BMS_I2C_BUILD_COMMAND_FAIL,                 // BMS I2C Communication: Failure while preparing I2C command to communicate with BQ769x0.
+    EBIKE_BMS_I2C_COMMAND_FAIL,                       // BMS I2C Communication: I2C data exchange failed. (not acknowledged or other)
+    EBIKE_BMS_I2C_CRC_MISMATCH                        // BMS I2C Communication: BQ769x0 communication CRC mismatched. (explained in the chip's datasheet)
 } eBike_err_type_t;
 ```
