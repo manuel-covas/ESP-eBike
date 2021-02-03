@@ -228,6 +228,15 @@ The BLE responses are listed bellow:
     | **Length** | 1             | `sizeof(eBike_err_t)` bytes | 0 bytes            |
     | **Value**  | `0x05`        | eBike error struct          | *No response data* |
 
+- **Put Settings** - `0x06 (EBIKE_COMMAND_AUTHED_COMMAND_PUT_SETTINGS)`\
+    Response to the Put Settings command.\
+    The `eBike_err` struct will indicate the outcome.
+    
+    Format:
+    |            | Response Byte | eBike Error                 | Response data      |
+    |:----------:|:-------------:|:---------------------------:|:------------------:|
+    | **Length** | 1             | `sizeof(eBike_err_t)` bytes | 0 bytes            |
+    | **Value**  | `0x06`        | eBike error struct          | *No response data* |
 
 
 ### ESP-eBike Errors
