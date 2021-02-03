@@ -129,12 +129,10 @@ char* eBike_print_settings(eBike_settings_t eBike_settings, char* header_message
                                     bq76930_settings_underoltage_trip_volts(eBike_settings),
                                     bq76930_settings_undervoltage_delay_seconds(eBike_settings));
 
-    if (result == -1) {
-        free(message);
-        message = "[System] - Failed to display loaded eBike settings. (asprintf returned -1)\n";
-    }
+    if (result == -1)
+        result = asprintf(&message, "[System] - Failed to display loaded eBike settings. (asprintf returned -1)\n");
     
-    return message;
+    return result == -1 ? NULL : message;
 }
 
 

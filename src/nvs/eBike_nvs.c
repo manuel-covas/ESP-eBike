@@ -67,7 +67,7 @@ eBike_err_t eBike_nvs_settings_put(eBike_settings_t* pointer) {
         return eBike_err;
     }
     
-    char* message = eBike_print_settings(*(eBike_settings_t*) pointer, "[System] - Saving settings form bluetooth:");
+    char* message = eBike_print_settings(*pointer, "[System] - Saving settings form bluetooth:");
     eBike_log_add(message, strlen(message));
     free(message);
 

@@ -11,12 +11,15 @@
 #include <eBike_ble_io.h>
 #include <eBike_auth.h>
 #include <eBike_nvs.h>
+#include <eBike_bms.h>
 #include <bq76930.h>
 
 void eBike_ble_execute_authed_command(eBike_authed_command_t authed_command);
 
 
 char* data_too_short_message = "[BLE] - Data sent was too short for command.\n";
+char* unknown_command_message = "[BLE] - Unknown command %02X.\n";
+char* unknown_authed_command_message = "[BLE] - Unknown authenticated command %02X.\n";
 char* command_signature_inavlid = "[BLE] - Authed command signature verification failed.\n";
 
 
@@ -25,6 +28,8 @@ void eBike_ble_io_recieve(struct gatts_write_evt_param* p) {
     struct gatts_write_evt_param* parameters = (struct gatts_write_evt_param*) p;
     uint8_t* data = parameters->value;
     uint16_t data_length = parameters->len;
+
+    char* message;
     eBike_response_t response = {
         .eBike_err = {
             .eBike_err_type = EBIKE_OK,
@@ -59,6 +64,14 @@ void eBike_ble_io_recieve(struct gatts_write_evt_param* p) {
             ;
             bq76930_adc_characteristics_t adc_characteristics = bq76930_get_adc_characteristics();
             eBike_queue_ble_message(&response, &adc_characteristics, sizeof(bq76930_adc_characteristics_t), true);
+        break;
+
+
+        case EBIKE_COMMAND_GET_CELL_VOLTAGES:
+            ;
+            eBike_cell_voltages_t cell_voltages;
+            response.eBike_err = eBike_bms_read_cell_voltages(&cell_voltages);
+            eBike_queue_ble_message(&response, &cell_voltages, sizeof(eBike_cell_voltages_t), true);
         break;
 
 
@@ -108,9 +121,10 @@ too_short:
 
 
         default:
-            ;
-            char* message;
-            asprintf(&message, "[BLE] - Unkown command %02X.\n", *data);
+            response.eBike_err.eBike_err_type = EBIKE_BLE_COMMAND_UNKNOWN;
+            eBike_queue_ble_message(&response, NULL, 0, true);
+
+            asprintf(&message, unknown_command_message, response.eBike_response);
             eBike_log_add(message, strlen(message));
             free(message);
         break;
@@ -138,28 +152,47 @@ void eBike_ble_execute_authed_command(eBike_authed_command_t authed_command) {
             if (authed_command.length < 1 + sizeof(eBike_settings_t))
                 goto too_short;
 
-            eBike_err_t eBike_err = eBike_nvs_settings_put((eBike_settings_t*) (authed_command.command + 1));
-            response.eBike_err = eBike_err;
-
-            eBike_queue_ble_message(&response, NULL, 0, true);
+            eBike_settings_t eBike_settings = *((eBike_settings_t*) (authed_command.command + 1));
+            eBike_err_t eBike_err = eBike_nvs_settings_put(&eBike_settings);
 
             if (eBike_err.eBike_err_type != EBIKE_OK) {
+                
+                response.eBike_err = eBike_err;
+                eBike_queue_ble_message(&response, NULL, 0, true);
+                
                 asprintf(&message, "[NVS] - Saving of NVS settings failed: eBike_err: %s (%i) esp_err: %s (%i)\n", eBike_err_to_name(eBike_err.eBike_err_type), eBike_err.eBike_err_type, esp_err_to_name(eBike_err.esp_err), eBike_err.esp_err);
-            }else{
-                asprintf(&message, "[NVS] - Saved NVS settings.\n");
+                eBike_log_add(message, strlen(message));
+                free(message);
+                return;
             }
+            
+            eBike_err = eBike_bms_config(eBike_settings);
+            response.eBike_err = eBike_err;
+            eBike_queue_ble_message(&response, NULL, 0, true);
+
+            if (eBike_err.eBike_err_type == EBIKE_OK) {
+                asprintf(&message, "[NVS] - Saved NVS settings.\n"
+                                   "[BMS] - Applied new settings.\n");
+            }else{
+                asprintf(&message, "[NVS] - Saved NVS settings.\n"
+                                   "[BMS] - Failed to apply new settings: eBike_err: %s (%i) esp_err: %s (%i)\n", eBike_err_to_name(eBike_err.eBike_err_type), eBike_err.eBike_err_type, esp_err_to_name(eBike_err.esp_err), eBike_err.esp_err);
+            }
+
             eBike_log_add(message, strlen(message));
             free(message);
             return;
+
 too_short:
             response.eBike_err.eBike_err_type = EBIKE_BLE_COMMAND_TOO_SHORT;
-            eBike_log_add(data_too_short_message, strlen(data_too_short_message));
             eBike_queue_ble_message(&response, NULL, 0, true);
+            eBike_log_add(data_too_short_message, strlen(data_too_short_message));
         break;
 
         default:
-            
-            asprintf(&message, "[BLE] - Unknown command %02X.\n", *authed_command.command);
+            response.eBike_err.eBike_err_type = EBIKE_BLE_AUTHED_COMMAND_UNKNOWN;
+            eBike_queue_ble_message(&response, NULL, 0, true);
+
+            asprintf(&message, unknown_authed_command_message, response.eBike_response);
             eBike_log_add(message, strlen(message));
             free(message);
         break;

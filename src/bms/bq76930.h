@@ -189,4 +189,7 @@ int bq76930_settings_undervoltage_delay_seconds(eBike_settings_t eBike_settings)
 double bq76930_settings_overvoltage_trip_volts(eBike_settings_t eBike_settings);
 int bq76930_settings_overvoltage_delay_seconds(eBike_settings_t eBike_settings);
 
+
+#define BQ76930_ADC_TRANSFER_VOLTS(adc_value, bq76930_adc_characteristics) (((double)(adc_value * bq76930_adc_characteristics.adc_gain_microvolts + bq76930_adc_characteristics.adc_offset_microvolts)) / 1000000.0)
+
 #endif

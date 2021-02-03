@@ -1,4 +1,5 @@
-#include <malloc.h>
+#include <string.h>
+#include <eBike_bms.h>
 #include <eBike_err.h>
 #include <eBike_log.h>
 #include <bq76930.h>
@@ -6,6 +7,7 @@
 
 
 bool bms_configured = false;
+bq76930_adc_characteristics_t bq76930_adc_characteristics;
 
 
 eBike_err_t eBike_bms_init() {
@@ -15,6 +17,7 @@ eBike_err_t eBike_bms_init() {
     printf("[BMS] - Initializing...\n");
     eBike_err = bq76930_init(); if (eBike_err.eBike_err_type != EBIKE_OK) return eBike_err;
 
+    bq76930_adc_characteristics = bq76930_get_adc_characteristics();
 
     // Checking if DEVICE_XREADY is set.
     bq76930_sys_stat_t sys_stat;
@@ -50,16 +53,16 @@ eBike_err_t eBike_bms_init() {
         .coulomb_counter_config = 0x19
     };
     printf("[BMS] - Configuring coulomb counter...\n");
-    eBike_err = bq76930_write_register(BQ76930_CC_CFG, (uint8_t*) &cc_config); if (eBike_err.eBike_err_type != EBIKE_OK) return eBike_err;
+    eBike_err = bq76930_write_register(BQ76930_CC_CFG, (uint8_t*) &cc_config);
 
     return eBike_err;
 }
+
 
 eBike_err_t eBike_bms_config(eBike_settings_t eBike_settings) {
 
     printf("[BMS] - Writing settings to BQ76930...\n");
     eBike_err_t eBike_err;
-
 
     bq76930_sys_ctrl_1_t sys_ctrl_1 = {
         .adc_enable = true,
@@ -72,7 +75,7 @@ eBike_err_t eBike_bms_config(eBike_settings_t eBike_settings) {
     bq76930_protect_t protect = {
         .short_circuit_threshold = eBike_settings.bq76930_short_circuit_threshold,
         .short_circuit_delay = eBike_settings.bq76930_short_circuit_delay,
-        .double_thresholds = eBike_settings.bq76930_double_thresholds,
+        .double_thresholds = eBike_settings.bq76930_double_thresholds ? true : false,
         .overcurrent_threshold = eBike_settings.bq76930_overcurrent_threshold,
         .overcurrent_delay = eBike_settings.bq76930_overcurrent_delay,
         .overvoltage_delay = eBike_settings.bq76930_overvoltage_delay,
@@ -92,5 +95,33 @@ eBike_err_t eBike_bms_config(eBike_settings_t eBike_settings) {
     if (eBike_err.eBike_err_type == EBIKE_OK)
         bms_configured = true;
 
+    return eBike_err;
+}
+
+
+eBike_err_t eBike_bms_read_cell_voltages(eBike_cell_voltages_t* eBike_cell_voltages) {
+
+    eBike_cell_voltages_t result;
+    bq76930_cell_voltages_t bq76930_cell_voltages;
+    
+    eBike_err_t eBike_err = bq76930_read_register(BQ76930_CELL_VOLTAGES, (uint8_t*) &bq76930_cell_voltages);
+
+    if (eBike_err.eBike_err_type != EBIKE_OK)
+        goto eBike_clean;
+
+    result.cell_1 = BQ76930_ADC_TRANSFER_VOLTS(((bq76930_cell_voltages.VC1_HI << 8) | bq76930_cell_voltages.VC1_LO), bq76930_adc_characteristics);
+    result.cell_2 = BQ76930_ADC_TRANSFER_VOLTS(((bq76930_cell_voltages.VC2_HI << 8) | bq76930_cell_voltages.VC2_LO), bq76930_adc_characteristics);
+    result.cell_3 = BQ76930_ADC_TRANSFER_VOLTS(((bq76930_cell_voltages.VC3_HI << 8) | bq76930_cell_voltages.VC3_LO), bq76930_adc_characteristics);
+    result.cell_4 = BQ76930_ADC_TRANSFER_VOLTS(((bq76930_cell_voltages.VC4_HI << 8) | bq76930_cell_voltages.VC4_LO), bq76930_adc_characteristics);
+    result.cell_5 = BQ76930_ADC_TRANSFER_VOLTS(((bq76930_cell_voltages.VC5_HI << 8) | bq76930_cell_voltages.VC5_LO), bq76930_adc_characteristics);
+    result.cell_6 = BQ76930_ADC_TRANSFER_VOLTS(((bq76930_cell_voltages.VC6_HI << 8) | bq76930_cell_voltages.VC6_LO), bq76930_adc_characteristics);
+    result.cell_7 = BQ76930_ADC_TRANSFER_VOLTS(((bq76930_cell_voltages.VC7_HI << 8) | bq76930_cell_voltages.VC7_LO), bq76930_adc_characteristics);
+    result.cell_8 = BQ76930_ADC_TRANSFER_VOLTS(((bq76930_cell_voltages.VC8_HI << 8) | bq76930_cell_voltages.VC8_LO), bq76930_adc_characteristics);
+    result.cell_9 = BQ76930_ADC_TRANSFER_VOLTS(((bq76930_cell_voltages.VC9_HI << 8) | bq76930_cell_voltages.VC9_LO), bq76930_adc_characteristics);
+    result.cell_10 = BQ76930_ADC_TRANSFER_VOLTS(((bq76930_cell_voltages.VC10_HI << 8) | bq76930_cell_voltages.VC10_LO), bq76930_adc_characteristics);
+
+    memcpy(eBike_cell_voltages, &result, sizeof(eBike_cell_voltages_t));
+    
+eBike_clean:
     return eBike_err;
 }
