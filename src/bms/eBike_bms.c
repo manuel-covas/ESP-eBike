@@ -109,16 +109,16 @@ eBike_err_t eBike_bms_read_cell_voltages(eBike_cell_voltages_t* eBike_cell_volta
     if (eBike_err.eBike_err_type != EBIKE_OK)
         goto eBike_clean;
 
-    result.cell_1 = BQ76930_ADC_TRANSFER_VOLTS(((bq76930_cell_voltages.VC1_HI << 8) | bq76930_cell_voltages.VC1_LO), bq76930_adc_characteristics);
-    result.cell_2 = BQ76930_ADC_TRANSFER_VOLTS(((bq76930_cell_voltages.VC2_HI << 8) | bq76930_cell_voltages.VC2_LO), bq76930_adc_characteristics);
-    result.cell_3 = BQ76930_ADC_TRANSFER_VOLTS(((bq76930_cell_voltages.VC3_HI << 8) | bq76930_cell_voltages.VC3_LO), bq76930_adc_characteristics);
-    result.cell_4 = BQ76930_ADC_TRANSFER_VOLTS(((bq76930_cell_voltages.VC4_HI << 8) | bq76930_cell_voltages.VC4_LO), bq76930_adc_characteristics);
-    result.cell_5 = BQ76930_ADC_TRANSFER_VOLTS(((bq76930_cell_voltages.VC5_HI << 8) | bq76930_cell_voltages.VC5_LO), bq76930_adc_characteristics);
-    result.cell_6 = BQ76930_ADC_TRANSFER_VOLTS(((bq76930_cell_voltages.VC6_HI << 8) | bq76930_cell_voltages.VC6_LO), bq76930_adc_characteristics);
-    result.cell_7 = BQ76930_ADC_TRANSFER_VOLTS(((bq76930_cell_voltages.VC7_HI << 8) | bq76930_cell_voltages.VC7_LO), bq76930_adc_characteristics);
-    result.cell_8 = BQ76930_ADC_TRANSFER_VOLTS(((bq76930_cell_voltages.VC8_HI << 8) | bq76930_cell_voltages.VC8_LO), bq76930_adc_characteristics);
-    result.cell_9 = BQ76930_ADC_TRANSFER_VOLTS(((bq76930_cell_voltages.VC9_HI << 8) | bq76930_cell_voltages.VC9_LO), bq76930_adc_characteristics);
-    result.cell_10 = BQ76930_ADC_TRANSFER_VOLTS(((bq76930_cell_voltages.VC10_HI << 8) | bq76930_cell_voltages.VC10_LO), bq76930_adc_characteristics);
+    result.cell_1  = BQ76930_ADC_TRANSFER_VOLTS((((0x3F & bq76930_cell_voltages.VC1_HI)  << 8) | bq76930_cell_voltages.VC1_LO),  bq76930_adc_characteristics);
+    result.cell_2  = BQ76930_ADC_TRANSFER_VOLTS((((0x3F & bq76930_cell_voltages.VC2_HI)  << 8) | bq76930_cell_voltages.VC2_LO),  bq76930_adc_characteristics);
+    result.cell_3  = BQ76930_ADC_TRANSFER_VOLTS((((0x3F & bq76930_cell_voltages.VC3_HI)  << 8) | bq76930_cell_voltages.VC3_LO),  bq76930_adc_characteristics);
+    result.cell_4  = BQ76930_ADC_TRANSFER_VOLTS((((0x3F & bq76930_cell_voltages.VC4_HI)  << 8) | bq76930_cell_voltages.VC4_LO),  bq76930_adc_characteristics);
+    result.cell_5  = BQ76930_ADC_TRANSFER_VOLTS((((0x3F & bq76930_cell_voltages.VC5_HI)  << 8) | bq76930_cell_voltages.VC5_LO),  bq76930_adc_characteristics);
+    result.cell_6  = BQ76930_ADC_TRANSFER_VOLTS((((0x3F & bq76930_cell_voltages.VC6_HI)  << 8) | bq76930_cell_voltages.VC6_LO),  bq76930_adc_characteristics);
+    result.cell_7  = BQ76930_ADC_TRANSFER_VOLTS((((0x3F & bq76930_cell_voltages.VC7_HI)  << 8) | bq76930_cell_voltages.VC7_LO),  bq76930_adc_characteristics);
+    result.cell_8  = BQ76930_ADC_TRANSFER_VOLTS((((0x3F & bq76930_cell_voltages.VC8_HI)  << 8) | bq76930_cell_voltages.VC8_LO),  bq76930_adc_characteristics);
+    result.cell_9  = BQ76930_ADC_TRANSFER_VOLTS((((0x3F & bq76930_cell_voltages.VC9_HI)  << 8) | bq76930_cell_voltages.VC9_LO),  bq76930_adc_characteristics);
+    result.cell_10 = BQ76930_ADC_TRANSFER_VOLTS((((0x3F & bq76930_cell_voltages.VC10_HI) << 8) | bq76930_cell_voltages.VC10_LO), bq76930_adc_characteristics);
 
     memcpy(eBike_cell_voltages, &result, sizeof(eBike_cell_voltages_t));
     
