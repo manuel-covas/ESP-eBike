@@ -19,7 +19,7 @@ eBike_err_t eBike_nvs_init() {
 
     if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {  // Bad NVS partition, erase and retry.
         EBIKE_HANDLE_ERROR(nvs_flash_erase(), EBIKE_NVS_INIT_ERASE_FAIL, eBike_err);
-        printf("[NVS] - Erased invalid NVS partition.");
+        printf("[NVS] - Erased invalid NVS partition.\n");
         err = nvs_flash_init();
     }
 
@@ -66,10 +66,6 @@ eBike_err_t eBike_nvs_settings_put(eBike_settings_t* pointer) {
                "        Got CRC %04X\n", crc, pointer->crc32);
         return eBike_err;
     }
-    
-    char* message = eBike_print_settings(*pointer, "[System] - Saving settings form bluetooth:");
-    eBike_log_add(message, strlen(message));
-    free(message);
 
     EBIKE_HANDLE_ERROR(nvs_set_blob(eBike_nvs_handle, EBIKE_NVS_SETTIGNS_KEY, pointer, length), EBIKE_NVS_SETTINGS_PUT_FAIL, eBike_err);
 

@@ -55,7 +55,7 @@ eBike_err_t bq76930_init() {
     
     printf("[BMS] - ADC characteristics:\n"
            "    ADC Gain: %i uV/LSB\n"
-           "    ADC_OFFSET: %i mV\n\n", adc_characteristics.adc_gain_microvolts, adc_offset.adc_offset);
+           "    ADC Offset: %i mV\n", adc_characteristics.adc_gain_microvolts, adc_offset.adc_offset);
 
 eBike_clean:
     return eBike_err;
@@ -153,7 +153,7 @@ eBike_err_t bq76930_read_register(bq76930_register_t register_address, uint8_t* 
             }
 
             for (int i = 0; i < length; i++) {
-                memset(pointer + i, *(response + i*2), 1);
+                memset(pointer + i, *(response + 1 + i*2), 1);
             }
             goto loop_end;
 
@@ -295,7 +295,7 @@ int bq76930_settings_shortcircuit_delay_us(eBike_settings_t eBike_settings) {
 
 
 double bq76930_settings_underoltage_trip_volts(eBike_settings_t eBike_settings) {
-    int adc_mapping = (0b1 << 12) | (eBike_settings.bq76930_undervoltage_threshold << 4);
+    int adc_mapping = (0x1000) | (eBike_settings.bq76930_undervoltage_threshold << 4);
     return ((double) (adc_mapping * adc_characteristics.adc_gain_microvolts + adc_characteristics.adc_offset_microvolts)) / 1000000;
 }
 
@@ -321,7 +321,7 @@ int bq76930_settings_undervoltage_delay_seconds(eBike_settings_t eBike_settings)
 
 
 double bq76930_settings_overvoltage_trip_volts(eBike_settings_t eBike_settings) {
-    int adc_mapping = (0b10 << 12) | (eBike_settings.bq76930_overvoltage_threshold << 4) | 0b1000;
+    int adc_mapping = (0x2000) | (eBike_settings.bq76930_overvoltage_threshold << 4) | 0b1000;
     return ((double) (adc_mapping * adc_characteristics.adc_gain_microvolts + adc_characteristics.adc_offset_microvolts)) / 1000000;
 }
 

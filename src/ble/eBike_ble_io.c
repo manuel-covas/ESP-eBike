@@ -136,7 +136,6 @@ too_short:
 
 void eBike_ble_execute_authed_command(eBike_authed_command_t authed_command) {
 
-    char* message;
     eBike_response_t response = {
         .eBike_response = *authed_command.command,
         .eBike_err = {
@@ -154,6 +153,10 @@ void eBike_ble_execute_authed_command(eBike_authed_command_t authed_command) {
 
             eBike_settings_t eBike_settings = *((eBike_settings_t*) (authed_command.command + 1));
             eBike_err_t eBike_err = eBike_nvs_settings_put(&eBike_settings);
+
+            char* message = eBike_print_settings(eBike_settings, "[System] - Saving settings form bluetooth:");
+            eBike_log_add(message, strlen(message));
+            free(message);
 
             if (eBike_err.eBike_err_type != EBIKE_OK) {
                 

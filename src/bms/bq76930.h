@@ -191,5 +191,7 @@ int bq76930_settings_overvoltage_delay_seconds(eBike_settings_t eBike_settings);
 
 
 #define BQ76930_ADC_TRANSFER_VOLTS(adc_value, bq76930_adc_characteristics) (((double)(adc_value * bq76930_adc_characteristics.adc_gain_microvolts + bq76930_adc_characteristics.adc_offset_microvolts)) / 1000000.0)
+#define BQ76930_ADC_OV_TRIP_REVERSE_TRANSFER_VOLTS(overvoltage_trip, bq76930_adc_characteristics)  ((((int)(((overvoltage_trip  * 1000000 - bq76930_adc_characteristics.adc_offset_microvolts) / bq76930_adc_characteristics.adc_gain_microvolts) - 0x2008)) / 0x10) & 0xFF)
+#define BQ76930_ADC_UV_TRIP_REVERSE_TRANSFER_VOLTS(undervoltage_trip, bq76930_adc_characteristics) ((((int)(((undervoltage_trip * 1000000 - bq76930_adc_characteristics.adc_offset_microvolts) / bq76930_adc_characteristics.adc_gain_microvolts) - 0x1000)) / 0x10) & 0xFF)
 
 #endif

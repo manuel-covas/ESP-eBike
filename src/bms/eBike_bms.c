@@ -4,11 +4,11 @@
 #include <eBike_log.h>
 #include <bq76930.h>
 #include <sdkconfig.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 
 
-bool bms_configured = false;
 bq76930_adc_characteristics_t bq76930_adc_characteristics;
-
 
 eBike_err_t eBike_bms_init() {
 
@@ -19,6 +19,13 @@ eBike_err_t eBike_bms_init() {
 
     bq76930_adc_characteristics = bq76930_get_adc_characteristics();
 
+    // Setting coulomb counter config value.
+    bq76930_cc_cfg_t cc_config = {
+        .coulomb_counter_config = 0x19
+    };
+    printf("[BMS] - Configuring coulomb counter...\n");
+    eBike_err = bq76930_write_register(BQ76930_CC_CFG, (uint8_t*) &cc_config);
+
     // Checking if DEVICE_XREADY is set.
     bq76930_sys_stat_t sys_stat;
     eBike_err = bq76930_read_register(BQ76930_SYS_STAT, (uint8_t*) &sys_stat); if (eBike_err.eBike_err_type != EBIKE_OK) return eBike_err;
@@ -27,7 +34,9 @@ eBike_err_t eBike_bms_init() {
         bq76930_sys_stat_t sys_stat_clear = {
             .device_xready = true
         };
-        printf("[BMS] - BQ76930 SYS_STAT has DEVICE_XREADY set. Clearing...\n");
+        printf("[BMS] - BQ76930 SYS_STAT has DEVICE_XREADY set. Waiting...\n");
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        printf("[BMS] - Clearing...\n");
         eBike_err = bq76930_write_register(BQ76930_SYS_STAT, (uint8_t*) &sys_stat_clear); if (eBike_err.eBike_err_type != EBIKE_OK) return eBike_err;
     }
 
@@ -38,22 +47,13 @@ eBike_err_t eBike_bms_init() {
         .discharge_on = false,
         .charge_on = false
     };
-    printf("[BMS] - Turning charge and discharge MOSFETs...\n");
+    printf("[BMS] - Enabling continuous coulomb counter and turning off charge and discharge MOSFETs...\n");
     eBike_err = bq76930_write_register(BQ76930_SYS_CTRL_2, (uint8_t*) &sys_ctrl_2); if (eBike_err.eBike_err_type != EBIKE_OK) return eBike_err;
-
 
     // Ensure cell balancing is not active. 
     bq76930_cellbal_t cellbal;
     printf("[BMS] - Stopping cell balancing...\n");
     eBike_err = bq76930_write_register(BQ76930_CELLBAL, (uint8_t*) &cellbal); if (eBike_err.eBike_err_type != EBIKE_OK) return eBike_err;
-
-
-    // Setting coulomb counter config value.
-    bq76930_cc_cfg_t cc_config = {
-        .coulomb_counter_config = 0x19
-    };
-    printf("[BMS] - Configuring coulomb counter...\n");
-    eBike_err = bq76930_write_register(BQ76930_CC_CFG, (uint8_t*) &cc_config);
 
     return eBike_err;
 }
@@ -91,9 +91,6 @@ eBike_err_t eBike_bms_config(eBike_settings_t eBike_settings) {
     };
     printf("[BMS] - Writing overvoltage and undervoltage thresholds...\n");
     eBike_err = bq76930_write_register(BQ76930_OV_UV_TRIP, (uint8_t*) &overvoltage_undervoltage_thresholds); if (eBike_err.eBike_err_type != EBIKE_OK) return eBike_err;
-
-    if (eBike_err.eBike_err_type == EBIKE_OK)
-        bms_configured = true;
 
     return eBike_err;
 }
