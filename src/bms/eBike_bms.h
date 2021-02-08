@@ -20,5 +20,7 @@ typedef struct __attribute__((__packed__)) eBike_cell_voltages_t {
 eBike_err_t eBike_bms_init();
 eBike_err_t eBike_bms_config(eBike_settings_t eBike_settings);
 eBike_err_t eBike_bms_read_cell_voltages(eBike_cell_voltages_t* eBike_cell_voltages);
+eBike_err_t eBike_bms_read_pack_voltage(double* pack_voltage);
+eBike_err_t eBike_bms_read_current(double* pack_current);
 
 #endif

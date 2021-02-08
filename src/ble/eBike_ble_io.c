@@ -16,11 +16,12 @@
 
 void eBike_ble_execute_authed_command(eBike_authed_command_t authed_command);
 
-
 char* data_too_short_message = "[BLE] - Data sent was too short for command.\n";
 char* unknown_command_message = "[BLE] - Unknown command %02X.\n";
 char* unknown_authed_command_message = "[BLE] - Unknown authenticated command %02X.\n";
 char* command_signature_inavlid = "[BLE] - Authed command signature verification failed.\n";
+
+bool system_stats_stream_enabled = false;
 
 
 void eBike_ble_io_recieve(struct gatts_write_evt_param* p) {
@@ -67,11 +68,13 @@ void eBike_ble_io_recieve(struct gatts_write_evt_param* p) {
         break;
 
 
-        case EBIKE_COMMAND_GET_CELL_VOLTAGES:
-            ;
-            eBike_cell_voltages_t cell_voltages;
-            response.eBike_err = eBike_bms_read_cell_voltages(&cell_voltages);
-            eBike_queue_ble_message(&response, &cell_voltages, sizeof(eBike_cell_voltages_t), true);
+        case EBIKE_COMMAND_SYSTEM_STATS_STREAM:
+            
+            if (data_length < 2)
+                goto too_short;
+
+            system_stats_stream_enabled = *(data + 1) != 0;
+            eBike_queue_ble_message(&response, NULL, 0, true);
         break;
 
 
@@ -112,11 +115,7 @@ void eBike_ble_io_recieve(struct gatts_write_evt_param* p) {
 
             eBike_queue_ble_message(&response, NULL, 0, true);
             return;
-
-too_short:
-            response.eBike_err.eBike_err_type = EBIKE_BLE_COMMAND_TOO_SHORT;
-            eBike_log_add(data_too_short_message, strlen(data_too_short_message));
-            eBike_queue_ble_message(&response, NULL, 0, true);
+            
         break;
 
 
@@ -128,6 +127,11 @@ too_short:
             eBike_log_add(message, strlen(message));
             free(message);
         break;
+
+too_short:
+        response.eBike_err.eBike_err_type = EBIKE_BLE_COMMAND_TOO_SHORT;
+        eBike_log_add(data_too_short_message, strlen(data_too_short_message));
+        eBike_queue_ble_message(&response, NULL, 0, true);
     }
 
     return;

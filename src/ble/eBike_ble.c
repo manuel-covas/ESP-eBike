@@ -322,6 +322,7 @@ void eBike_gatts_callback(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, es
 
         case ESP_GATTS_DISCONNECT_EVT:
             eBike_ble_connected = false;
+            system_stats_stream_enabled = false;
             xTaskNotify(eBike_ble_outgoing_task_handle, client_disconnected_flag, eSetBits);
             
             eBike_beep(&EBIKE_CONNECT_BEEP_DURATION_MS);

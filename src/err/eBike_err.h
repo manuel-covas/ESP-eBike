@@ -12,6 +12,11 @@ typedef enum {
     EBIKE_NVS_INIT_FAIL,                          // NVS Init: ESP-IDF nvs_flash_init() failed.
     EBIKE_NVS_INIT_OPEN_FAIL,                     // NVS Init: Failed to open NVS namespace EBIKE_NVS_NAMESPACE with mode NVS_READWRITE.
     EBIKE_GPIO_INIT_CONFIG_FAIL,                  // GPIO Init: ESP-IDF gpio_config() failed.
+    EBIKE_GPIO_INIT_PWM_CONFIG_FAIL,              // GPIO Init: Failed to configure PWM (LEDC).
+    EBIKE_GPIO_PWM_TOGGLE_FAIL,                   // GPIO: Failed to toggle PWM (LEDC).
+    EBIKE_GPIO_PWM_SET_DUTY_FAIL,                 // GPIO: Failed to set duty cycle of PWM (LEDC).
+    EBIKE_ADC_INIT_SET_WIDTH_FAIL,                // ADC Init: Failed to set ADC1 reading width.
+    EBIKE_ADC_INIT_SET_ATTEN_FAIL,                // ADC Init: Failed to set ADC1 throttle channel attenuation.
     EBIKE_BLE_INIT_OUTGOING_QUEUE_CREATE_FAIL,    // BLE Init: Outgoing message queue creation failed.
     EBIKE_BLE_INIT_OUTGOING_TASK_CREATE_FAIL,     // BLE Init: Outgoing message task creation failed.
     EBIKE_BLE_INIT_CONTROLLER_INIT_FAIL,          // BLE Init: Initializing bluetooth controller with BT_CONTROLLER_INIT_CONFIG_DEFAULT failed.

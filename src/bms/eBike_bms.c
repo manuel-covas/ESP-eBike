@@ -122,3 +122,33 @@ eBike_err_t eBike_bms_read_cell_voltages(eBike_cell_voltages_t* eBike_cell_volta
 eBike_clean:
     return eBike_err;
 }
+
+eBike_err_t eBike_bms_read_pack_voltage(double* pack_voltage) {
+
+    bq76930_bat_voltage_t bat_voltage_register;
+    eBike_err_t eBike_err = bq76930_read_register(BQ76930_BAT_VOLTAGE, (uint8_t*) &bat_voltage_register);
+
+    if (eBike_err.eBike_err_type != EBIKE_OK)
+        goto eBike_clean;
+
+    double result = (double) (4 * bat_voltage_register.battery_voltge * bq76930_adc_characteristics.adc_gain_microvolts + 6 * bq76930_adc_characteristics.adc_offset_microvolts) / 1000000;
+    memcpy(pack_voltage, &result, sizeof(double));
+    
+eBike_clean:
+    return eBike_err;
+}
+
+eBike_err_t eBike_bms_read_current(double* pack_current) {
+
+    bq76930_coulomb_counter_t cc_register;
+    eBike_err_t eBike_err = bq76930_read_register(BQ76930_COULOMB_COUNTER, (uint8_t*) &cc_register);
+
+    if (eBike_err.eBike_err_type != EBIKE_OK)
+        goto eBike_clean;
+
+    double result = ((cc_register.cc_reading * 8.44) / 1000000) / bq76930_adc_characteristics.shunt_value;
+    memcpy(pack_current, &result, sizeof(double));
+    
+eBike_clean:
+    return eBike_err;
+}

@@ -39,11 +39,17 @@ menu "ESP-eBike Configuration"
             The GPIO number of the pin to that activates the power output 2.
 
 
-    config THROTTLE_GPIO
-        int "Throttle GPIO Number"
-        default 36
+    config THROTTLE_ADC1_CHANNEL
+        int "ADC1 Throttle Channel Number"
+        default 0
         help
-            The GPIO number of the pin to read the throttle analog signal from.
+            The ADC1 channel number to which the throttle analog signal is connected.
+
+    config ADC1_MULTISAMPLING_COUNT
+        int "ADC1 Multisampling Count"
+        default 64
+        help
+            The amount of samples to take the average of for each ADC read.
 
     config MAGNET_GPIO
         int "Magnet GPIO Number"
@@ -56,6 +62,12 @@ menu "ESP-eBike Configuration"
         default 25
         help
             The GPIO number of the output pin for the PWM ESC control signal.
+
+    config PWM_FREQUENCY_HZ
+        int "ESC PWM Frequency"
+        default 50
+        help
+            Frequency in Hertz to use when generating the ESC PWM control signal. 
 
 
     config BUZZER_GPIO
@@ -100,5 +112,11 @@ menu "ESP-eBike Configuration"
         default 2048
         help
             The size, in bytes, to use for the buffer of text logs that can be read through bluetooth.
-            
+
+
+    config SYSTEM_STATS_STREAM_MIN_PERIOD_MS
+        int "System Sats Minimum Update Period (Milliseconds)"
+        default 200
+        help
+            The minimum period, in milliseconds, between updates of the BLE System Stats stream.
 endmenu
