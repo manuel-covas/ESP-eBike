@@ -146,7 +146,7 @@ typedef struct __attribute__((__packed__)) bq76930_ts2_t {
 } bq76930_ts2_t;
 
 typedef struct __attribute__((__packed__)) bq76930_coulomb_counter_t {
-    uint16_t cc_reading;
+    int16_t cc_reading;
 } bq76930_coulomb_counter_t;
 
 typedef struct __attribute__((__packed__)) bq76930_adc_gain_1_t {
