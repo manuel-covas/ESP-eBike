@@ -114,18 +114,19 @@ eBike_clean:
 
 eBike_err_t bq76930_read_register(bq76930_register_t register_address, uint8_t* pointer) {
     
-    uint8_t length = bq76930_sizeof_register(register_address) * 2;
+    uint8_t length = bq76930_sizeof_register(register_address);
+    uint8_t read_length = length * 2;
     uint8_t address_byte = (CONFIG_I2C_SLAVE_ADDRESS << 1) | I2C_MASTER_READ;
 
-    uint8_t* response = (uint8_t*) malloc(length + 1);
+    uint8_t* response = (uint8_t*) malloc(read_length + 1);
     response[0] = address_byte;
 
 
     int attempt = 0;
     while (true) {
-        memset(response + 1, 0, length);
+        memset(response + 1, 0, read_length);
 
-        eBike_err_t eBike_err = bq76930_read_bytes(register_address, response + 1, length);
+        eBike_err_t eBike_err = bq76930_read_bytes(register_address, response + 1, read_length);
 
         if (eBike_err.eBike_err_type != EBIKE_OK) {
             char* log_message = (char*) calloc(1000, 1);
@@ -146,7 +147,7 @@ eBike_err_t bq76930_read_register(bq76930_register_t register_address, uint8_t* 
 
             if (expected_crc != received_crc) goto crc_fail;
 
-            for (int i = 1; i < (length / 2); i++) {
+            for (int i = 1; i < (length); i++) {
                 expected_crc = crc8(response + 1 + i*2, 1);
                 received_crc = *(response + 2 + i*2);
 

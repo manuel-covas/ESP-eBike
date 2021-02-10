@@ -99,7 +99,7 @@ void app_main() {
     eBike_system_stats_t system_stats;
 
     eBike_response_t eBike_response = {
-        .eBike_response = 0xFF,
+        .eBike_response = EBIKE_COMMAND_SYSTEM_STATS_UPDATE,
         .eBike_err = {
             .eBike_err_type = EBIKE_OK,
             .esp_err = ESP_OK
