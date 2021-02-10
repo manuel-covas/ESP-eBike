@@ -132,7 +132,8 @@ typedef struct __attribute__((__packed__)) bq76930_cell_voltages_t {
 } bq76930_cell_voltages_t;
 
 typedef struct __attribute__((__packed__)) bq76930_bat_voltage_t {
-    uint16_t battery_voltge;
+    uint8_t BAT_HI:6;
+    uint8_t BAT_LO;
 } bq76930_bat_voltage_t;
 
 typedef struct __attribute__((__packed__)) bq76930_ts1_t {
@@ -146,7 +147,8 @@ typedef struct __attribute__((__packed__)) bq76930_ts2_t {
 } bq76930_ts2_t;
 
 typedef struct __attribute__((__packed__)) bq76930_coulomb_counter_t {
-    int16_t cc_reading;
+    uint8_t CC_HI:6;
+    uint8_t CC_LO;
 } bq76930_coulomb_counter_t;
 
 typedef struct __attribute__((__packed__)) bq76930_adc_gain_1_t {

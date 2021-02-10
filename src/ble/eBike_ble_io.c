@@ -12,6 +12,7 @@
 #include <eBike_auth.h>
 #include <eBike_nvs.h>
 #include <eBike_bms.h>
+#include <eBike_gpio.h>
 #include <bq76930.h>
 
 void eBike_ble_execute_authed_command(eBike_authed_command_t authed_command);
@@ -188,13 +189,35 @@ void eBike_ble_execute_authed_command(eBike_authed_command_t authed_command) {
             eBike_log_add(message, strlen(message));
             free(message);
             return;
-
-too_short:
-            response.eBike_err.eBike_err_type = EBIKE_BLE_COMMAND_TOO_SHORT;
-            eBike_queue_ble_message(&response, NULL, 0, true);
-            eBike_log_add(data_too_short_message, strlen(data_too_short_message));
         break;
 
+
+        case EBIKE_COMMAND_AUTHED_COMMAND_TOGGLE_UNLOCK:
+
+            if (authed_command.length < 2)
+                goto too_short;
+            
+            bool unlock = *(authed_command.command + 1) == 0x01;
+
+            bq76930_sys_ctrl_2_t sys_ctrl_2 = {
+                .disable_delays = false,
+                .coulomb_counter_enable = true,
+                .coulomb_counter_oneshot = false,
+                .discharge_on = unlock,
+                .charge_on = unlock
+            };
+            printf("[BMS] - %s...\n", unlock ? "Unlocking" : "Locking");
+            eBike_err = bq76930_write_register(BQ76930_SYS_CTRL_2, (uint8_t*) &sys_ctrl_2);
+            
+            if (eBike_err.eBike_err_type != EBIKE_OK) {
+                asprintf(&message, "[BMS] - Failed to %s: eBike_err: %s (%i) esp_err: %s (%i)\n", unlock ? "unlock" : "lock", eBike_err_to_name(eBike_err.eBike_err_type), eBike_err.eBike_err_type, esp_err_to_name(eBike_err.esp_err));
+                eBike_log_add(message, strlen(message));
+                free(message);
+                response.eBike_err = eBike_err;
+            }
+            
+            eBike_gpio_pwm_toggle(unlock);
+            
         default:
             response.eBike_err.eBike_err_type = EBIKE_BLE_AUTHED_COMMAND_UNKNOWN;
             eBike_queue_ble_message(&response, NULL, 0, true);
@@ -203,6 +226,11 @@ too_short:
             eBike_log_add(message, strlen(message));
             free(message);
         break;
+
+too_short:
+        response.eBike_err.eBike_err_type = EBIKE_BLE_COMMAND_TOO_SHORT;
+        eBike_queue_ble_message(&response, NULL, 0, true);
+        eBike_log_add(data_too_short_message, strlen(data_too_short_message));
     }
 
     return;

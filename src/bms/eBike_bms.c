@@ -131,7 +131,7 @@ eBike_err_t eBike_bms_read_pack_voltage(double* pack_voltage) {
     if (eBike_err.eBike_err_type != EBIKE_OK)
         goto eBike_clean;
 
-    double result = (double) (4 * bat_voltage_register.battery_voltge * bq76930_adc_characteristics.adc_gain_microvolts + 6 * bq76930_adc_characteristics.adc_offset_microvolts) / 1000000;
+    double result = (double) (((bat_voltage_register.BAT_HI << 8) | (bat_voltage_register.BAT_LO)) * 4 * bq76930_adc_characteristics.adc_gain_microvolts + 6 * bq76930_adc_characteristics.adc_offset_microvolts) / 1000000;
     memcpy(pack_voltage, &result, sizeof(double));
     
 eBike_clean:
@@ -146,7 +146,7 @@ eBike_err_t eBike_bms_read_current(double* pack_current) {
     if (eBike_err.eBike_err_type != EBIKE_OK)
         goto eBike_clean;
 
-    double result = ((double) (cc_register.cc_reading * 8.44) / 1000000.0) / bq76930_adc_characteristics.shunt_value;
+    double result = ((double) (((cc_register.CC_HI << 8) | (cc_register.CC_LO)) * 8.44) / 1000000.0) / bq76930_adc_characteristics.shunt_value;
     memcpy(pack_current, &result, sizeof(double));
     
 eBike_clean:
