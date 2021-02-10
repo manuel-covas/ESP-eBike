@@ -199,6 +199,23 @@ void eBike_ble_execute_authed_command(eBike_authed_command_t authed_command) {
             
             bool unlock = *(authed_command.command + 1) == 0x01;
 
+            printf("[GPIO] - %s PWM ESC control signal...\n", unlock ? "Enabling" : "Disabling");
+            eBike_err = eBike_gpio_pwm_toggle(unlock);
+            
+            if (eBike_err.eBike_err_type != EBIKE_OK) {
+                asprintf(&message, "[GPIO] - Failed to %s PWM ESC control signal: eBike_err: %s (%i) esp_err: %s (%i)\n",
+                                   unlock ? "enable" : "disable",
+                                   eBike_err_to_name(eBike_err.eBike_err_type),
+                                   eBike_err.eBike_err_type,
+                                   esp_err_to_name(eBike_err.esp_err),
+                                   eBike_err.esp_err);
+                eBike_log_add(message, strlen(message));
+                free(message);
+
+                response.eBike_err = eBike_err;
+                eBike_queue_ble_message(&response, NULL, 0, true);
+            }
+
             bq76930_sys_ctrl_2_t sys_ctrl_2 = {
                 .disable_delays = false,
                 .coulomb_counter_enable = true,
@@ -206,18 +223,26 @@ void eBike_ble_execute_authed_command(eBike_authed_command_t authed_command) {
                 .discharge_on = unlock,
                 .charge_on = unlock
             };
+
             printf("[BMS] - %s...\n", unlock ? "Unlocking" : "Locking");
             eBike_err = bq76930_write_register(BQ76930_SYS_CTRL_2, (uint8_t*) &sys_ctrl_2);
             
             if (eBike_err.eBike_err_type != EBIKE_OK) {
-                asprintf(&message, "[BMS] - Failed to %s: eBike_err: %s (%i) esp_err: %s (%i)\n", unlock ? "unlock" : "lock", eBike_err_to_name(eBike_err.eBike_err_type), eBike_err.eBike_err_type, esp_err_to_name(eBike_err.esp_err));
+                asprintf(&message, "[BMS] - Failed to %s: eBike_err: %s (%i) esp_err: %s (%i)\n",
+                                   unlock ? "unlock" : "lock",
+                                   eBike_err_to_name(eBike_err.eBike_err_type),
+                                   eBike_err.eBike_err_type,
+                                   esp_err_to_name(eBike_err.esp_err),
+                                   eBike_err.esp_err);
                 eBike_log_add(message, strlen(message));
                 free(message);
+
                 response.eBike_err = eBike_err;
+                eBike_queue_ble_message(&response, NULL, 0, true);
             }
             
-            eBike_gpio_pwm_toggle(unlock);
-            
+        break;
+
         default:
             response.eBike_err.eBike_err_type = EBIKE_BLE_AUTHED_COMMAND_UNKNOWN;
             eBike_queue_ble_message(&response, NULL, 0, true);
