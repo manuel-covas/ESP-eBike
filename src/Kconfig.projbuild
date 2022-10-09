@@ -9,7 +9,7 @@ menu "ESP-eBike Configuration"
 
     config AUTH_RSA_PUBLIC_KEY
         string "Authentication RSA Public Key"
-        default "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA5BA8puOFPRgCBzO9+0rZmiT3w4NKT2alNBnrProUj9CIDMLS6AXlTyk9dheU1fbe1AywE7PZ0EO7WaI0Tf4QTRDOim02VFtK1BUeRjDHrerz3PI6u2N/75u2xwfVX27OOQiF4lpvUy8mOTgeE+YLRb9Be7qtVOjFBFslxTv7YrBab1aRrLWC2QrwFbwksWMCoMMV/8+GayRNA7ynMdyeLENJF51y2rnbKnQOaFm9W8FW4/Nao0hkY6bLb0M5SGbRhlPm+tSu/SJ/95WMDwrHOvA67Wn17dYuzUaLt27Qt0Uyh1+oZJXxfKIjHW1ABZluZqRoKmYx18qeIAJMtGDK2wIDAQAB"
+        default ""
         help
             The RSA public key used for authentication.
 
@@ -22,21 +22,40 @@ menu "ESP-eBike Configuration"
 
     config CURRENT_SENSE_RESISTOR
         int "Current Sense Resistor Value (mOhm)"
-        default 2
+        default 1
         help
             The value, in milliohms, of the current sense resistor.
 
+
     config OUT1_GPIO
-        int "Power output 1 GPIO Number"
-        default 26
+        int "Power Output 1 GPIO Number"
+        default 16
         help
-            The GPIO number of the pin to that activates the power output 1.
+            The GPIO number of the pin which activates Power Output 1.
 
     config OUT2_GPIO
-        int "Power output 2 GPIO Number"
-        default 27
+        int "Power Output 2 GPIO Number"
+        default 17
         help
-            The GPIO number of the pin to that activates the power output 2.
+            The GPIO number of the pin which activates Power Output 2.
+
+    config OUT3_GPIO
+        int "Power Output 3 GPIO Number"
+        default 5
+        help
+            The GPIO number of the pin which activates Power Output 3.
+
+    config OUT4_GPIO
+        int "Power Output 4 GPIO Number"
+        default 18
+        help
+            The GPIO number of the pin which activates Power Output 4.
+
+    config OUT5_GPIO
+        int "Power Output 5 GPIO Number"
+        default 19
+        help
+            The GPIO number of the pin which activates Power Output 5.
 
 
     config THROTTLE_ADC1_CHANNEL
@@ -51,11 +70,13 @@ menu "ESP-eBike Configuration"
         help
             The amount of samples to take the average of for each ADC read.
 
+
     config MAGNET_GPIO
         int "Magnet GPIO Number"
         default 33
         help
             The GPIO number of the pin from which to count pulses from and calculate speed.
+
 
     config PWM_GPIO
         int "ESC PWM GPIO Number"
@@ -78,9 +99,10 @@ menu "ESP-eBike Configuration"
 
     config FAULT_LED_GPIO
         int "Fault LED GPIO Number"
-        default 15
+        default 14
         help
             The GPIO number of the pin that activates the FAULT indicator led.
+
 
     config I2C_CLOCK_FREQUENCY
         int "I2C Clock Frequency"
@@ -94,17 +116,17 @@ menu "ESP-eBike Configuration"
         help
             The slave address of the I2C connected BQ76930 chip.
 
-    config I2C_SDA_GPIO
-        int "I2C SDA GPIO Number"
-        default 14
-        help
-            The GPIO number of the pin to use for the I2C data line.
-
     config I2C_SCL_GPIO
         int "I2C SCL GPIO Number"
-        default 13
+        default 27
         help
             The GPIO number of the pin to use for the I2C clock line.
+
+    config I2C_SDA_GPIO
+        int "I2C SDA GPIO Number"
+        default 26
+        help
+            The GPIO number of the pin to use for the I2C data line.
 
 
     config EBIKE_LOG_BUFFER_SIZE
