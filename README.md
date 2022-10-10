@@ -5,9 +5,40 @@
 ESP32 Firmware for a DIY eBike BMS and control board.\
 This software is licensed under BY-NC-SA 4.0, see [LICENSE.md](LICENSE.md), for any inquiry feel free to contact me at manuel.p.covas@gmail.com
  
-## Project Configuration
-The default values are set according to this circuit board.\
-Configuration: `idf.py menuconfig`
+## Build Configuration
+With a correctly setup ESP-IDF environment, access the build configuration menu with the `idf.py menuconfig` command.
+
+> Make sure that the **Bluetooth** component is enabled in the build system.\
+> You can find the option in the `(Top) → Component config → Bluetooth` menu section.
+
+The following items are located in the `(Top) → ESP-eBike Configuration` menu section:
+
+| Fied Name                                        | Default Value | Description |
+|:-------------------------------------------------|:--------------|:-------------------------------------------------------------------------------------------|
+| BLE Device Name                                  | `"ESP-eBike"` | The Bluetooth device name to use.                                                          |
+| Authentication RSA Public Key                    | `Empty`       | The RSA public key used for authentication                                                 |
+| Crypto Challenge Length (bytes)                  | `64`          | The amount of random bytes to use for the crypto challenge.                                |
+| Current Sense Resistor Value (mOhm)              | `1`           | The value, in milliohms, of the current sense resistor.                                    |
+| Power Output 1 GPIO Number                       | `16`          | The GPIO number of the pin which activates Power Output 1.                                 |
+| Power Output 2 GPIO Number                       | `17`          | The GPIO number of the pin which activates Power Output 2.                                 |
+| Power Output 3 GPIO Number                       | `5`           | The GPIO number of the pin which activates Power Output 3.                                 |
+| Power Output 4 GPIO Number                       | `18`          | The GPIO number of the pin which activates Power Output 4.                                 |
+| Power Output 5 GPIO Number                       | `19`          | The GPIO number of the pin which activates Power Output 5.                                 |
+| ADC1 Throttle Channel Number                     | `0`           | The ADC1 channel number to which the throttle analog signal is connected.                  |
+| ADC1 Multisampling Count                         | `64`          | The amount of samples to take the average of for each ADC read.                            |
+| Magnet GPIO Number                               | `33`          | The GPIO number of the pin from which to count pulses from and calculate speed.            |
+| ESC PWM GPIO Number                              | `25`          | The GPIO number of the output pin for the PWM ESC control signal.                          |
+| ESC PWM Frequency (Hz)                           | `50`          | Frequency in Hertz to use when generating the ESC PWM control signal.                      |
+| Buzzer GPIO Number                               | `12`          | The GPIO number of the pin that activates the buzzer.                                      |
+| Fault LED GPIO Number                            | `14`          | The GPIO number of the pin that activates the FAULT indicator led.                         |
+| I2C Clock Frequency (Hz)                         | `50000`       | The frequency to clock the I2C line at.                                                    |
+| I2C Slave Address                                | `0x08`        | The slave address of the I2C connected BQ76930 chip.                                       |
+| I2C SCL GPIO Number                              | `27`          | The GPIO number of the pin to use for the I2C clock line.                                  |
+| I2C SDA GPIO Number                              | `26`          | The GPIO number of the pin to use for the I2C data line.                                   |
+| BLE Log Buffer Size (bytes)                      | `2048`        | The size, in bytes, to use for the buffer of text logs that can be read through bluetooth. |
+| System Sats Minimum Update Period (Milliseconds) | `200`         | The minimum period, in milliseconds, between updates of the BLE System Stats stream.       |
+
+The default values are set according to this circuit board.
 
 ## Circuit Board
 EasyEDA project: https://easyeda.com/manuel.p.covas/esp-ebike

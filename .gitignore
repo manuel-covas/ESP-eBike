@@ -54,6 +54,10 @@ dkms.conf
 # Build files
 build/
 
+# Menuconfig
+sdkconfig
+sdkconfig.old
+
 # Visual Studio Code
 .vscode
 keys

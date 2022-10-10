@@ -4,7 +4,7 @@ menu "ESP-eBike Configuration"
         string "BLE Device Name"
         default "ESP-eBike"
         help
-            The device name that will be advertised by the Bluetooth LE server.
+            The Bluetooth device name to use.
 
 
     config AUTH_RSA_PUBLIC_KEY
