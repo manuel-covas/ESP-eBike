@@ -15,8 +15,12 @@ typedef enum {
     EBIKE_GPIO_INIT_PWM_CONFIG_FAIL,              // GPIO Init: Failed to configure PWM (LEDC).
     EBIKE_GPIO_PWM_TOGGLE_FAIL,                   // GPIO: Failed to toggle PWM (LEDC).
     EBIKE_GPIO_PWM_SET_DUTY_FAIL,                 // GPIO: Failed to set duty cycle of PWM (LEDC).
-    EBIKE_ADC_INIT_SET_WIDTH_FAIL,                // ADC Init: Failed to set ADC1 reading width.
-    EBIKE_ADC_INIT_SET_ATTEN_FAIL,                // ADC Init: Failed to set ADC1 throttle channel attenuation.
+    EBIKE_ADC_INIT_CREATE_UNIT_FAIL,              // ADC Init: Failed to create new ADC unit.
+    EBIKE_ADC_INIT_CONFIG_CHANNEL_FAIL,           // ADC Init: Failed to set configure ADC channel.
+    EBIKE_ADC_INIT_CREATE_CALIBRATION_FAIL,       // ADC Init: Failed to create new ADC calibration scheme.
+    EBIKE_ADC_INIT_CHECK_VREF_TYPE_FAIL,          // ADC Init: Failed to check ADC reference voltage source.
+    EBIKE_ADC_ONESHOT_READ_FAIL,                  // ADC Read: Read operation failed.
+    EBIKE_ADC_RAW_TO_VOLTAGE_CONVERSION_FAIL,     // ADC Read: Raw value to voltage conversion failed.
     EBIKE_BLE_INIT_OUTGOING_QUEUE_CREATE_FAIL,    // BLE Init: Outgoing message queue creation failed.
     EBIKE_BLE_INIT_OUTGOING_TASK_CREATE_FAIL,     // BLE Init: Outgoing message task creation failed.
     EBIKE_BLE_INIT_CONTROLLER_INIT_FAIL,          // BLE Init: Initializing bluetooth controller with BT_CONTROLLER_INIT_CONFIG_DEFAULT failed.

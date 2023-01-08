@@ -107,7 +107,7 @@ void app_main() {
     while (1) {
         current_time = esp_timer_get_time();
         
-        system_stats.throttle_percentage = eBike_adc_read_throttle();
+        eBike_err = eBike_adc_read_throttle(&system_stats.throttle_percentage);                         if (eBike_err.eBike_err_type != EBIKE_OK) break;
         eBike_err = eBike_gpio_pwm_set_duty(system_stats.throttle_percentage);                          if (eBike_err.eBike_err_type != EBIKE_OK) break;
         
         eBike_err = bq76930_read_register(BQ76930_SYS_STAT,   (uint8_t*) &system_stats.sys_stat);       if (eBike_err.eBike_err_type != EBIKE_OK) break;
