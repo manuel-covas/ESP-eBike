@@ -1,4 +1,5 @@
 #include <string.h>
+#include <eBike_ble_io.h>
 #include <eBike_bms.h>
 #include <eBike_err.h>
 #include <eBike_log.h>
@@ -17,7 +18,7 @@ eBike_err_t eBike_bms_init() {
     printf("[BMS] - Initializing...\n");
     eBike_err = bq76930_init(); if (eBike_err.eBike_err_type != EBIKE_OK) return eBike_err;
 
-    bq76930_adc_characteristics = bq76930_get_adc_characteristics();
+    bq76930_adc_characteristics = *bq76930_get_adc_characteristics();
 
     // Setting coulomb counter config value.
     bq76930_cc_cfg_t cc_config = {

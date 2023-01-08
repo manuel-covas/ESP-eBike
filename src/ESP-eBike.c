@@ -3,6 +3,7 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <esp_err.h>
+#include <esp_timer.h>
 #include <nvs.h>
 #include <util/eBike_util.h>
 #include <eBike_err.h>
@@ -16,9 +17,7 @@
 #include <eBike_log.h>
 
 
-
-bq76930_adc_characteristics_t bq76930_adc_characteristics;
-eBike_settings_t eBike_settings;
+static eBike_settings_t eBike_settings;
 
 void app_main() {
     
@@ -35,8 +34,6 @@ void app_main() {
     eBike_err = eBike_auth_init(); eBike_err_report(eBike_err);
     eBike_err = eBike_bms_init();  eBike_err_report(eBike_err);
     
-    bq76930_adc_characteristics = bq76930_get_adc_characteristics();
-
     // Get settings from NVS
 
     eBike_err = eBike_nvs_settings_get(&eBike_settings);
@@ -45,7 +42,7 @@ void app_main() {
 
         // No saved settings, populate with defaults.
 
-        EBIKE_NVS_DEFAULT_SETTINGS(&eBike_settings, bq76930_adc_characteristics);
+        EBIKE_NVS_DEFAULT_SETTINGS(&eBike_settings, (*bq76930_get_adc_characteristics()));
         eBike_err = eBike_nvs_settings_put(&eBike_settings);
         
         char* message = eBike_print_settings(eBike_settings, "[NVS] - No settings found! Saving default values:");
@@ -110,7 +107,7 @@ void app_main() {
     while (1) {
         current_time = esp_timer_get_time();
         
-        eBike_adc_read_throttle(&system_stats.throttle_percentage);
+        system_stats.throttle_percentage = eBike_adc_read_throttle();
         eBike_err = eBike_gpio_pwm_set_duty(system_stats.throttle_percentage);                          if (eBike_err.eBike_err_type != EBIKE_OK) break;
         
         eBike_err = bq76930_read_register(BQ76930_SYS_STAT,   (uint8_t*) &system_stats.sys_stat);       if (eBike_err.eBike_err_type != EBIKE_OK) break;
@@ -128,7 +125,7 @@ void app_main() {
             eBike_err = eBike_bms_read_pack_voltage(&system_stats.pack_voltage);                        if (eBike_err.eBike_err_type != EBIKE_OK) break;
         }
 
-        if (system_stats_stream_enabled && (current_time - last_ble_update > CONFIG_SYSTEM_STATS_STREAM_MIN_PERIOD_MS * 1000)) {
+        if (eBike_ble_system_stats_stream_enabled() && (current_time - last_ble_update > CONFIG_SYSTEM_STATS_STREAM_MIN_PERIOD_MS * 1000)) {
             last_ble_update = current_time;
             eBike_queue_ble_message(&eBike_response, &system_stats, sizeof(eBike_system_stats_t), false);
         }

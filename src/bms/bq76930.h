@@ -174,7 +174,7 @@ typedef struct __attribute__((__packed__)) bq76930_adc_characteristics_t {
 
 
 eBike_err_t bq76930_init();
-bq76930_adc_characteristics_t bq76930_get_adc_characteristics();
+bq76930_adc_characteristics_t* bq76930_get_adc_characteristics();
 
 eBike_err_t bq76930_read_register(bq76930_register_t register_address, uint8_t* pointer);
 eBike_err_t bq76930_write_register(bq76930_register_t register_address, uint8_t* pointer);

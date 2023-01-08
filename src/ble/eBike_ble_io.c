@@ -22,7 +22,16 @@ char* unknown_command_message = "[BLE] - Unknown command %02X.\n";
 char* unknown_authed_command_message = "[BLE] - Unknown authenticated command %02X.\n";
 char* command_signature_inavlid = "[BLE] - Authed command signature verification failed.\n";
 
+
 bool system_stats_stream_enabled = false;
+
+bool eBike_ble_system_stats_stream_enabled() {
+    return system_stats_stream_enabled;
+}
+
+void eBike_ble_toggle_system_stats_stream(bool enabled) {
+    system_stats_stream_enabled = enabled;
+}
 
 
 void eBike_ble_io_recieve(struct gatts_write_evt_param* p) {
@@ -64,8 +73,8 @@ void eBike_ble_io_recieve(struct gatts_write_evt_param* p) {
 
         case EBIKE_COMMAND_GET_ADC_CHARACTERISTICS:
             ;
-            bq76930_adc_characteristics_t adc_characteristics = bq76930_get_adc_characteristics();
-            eBike_queue_ble_message(&response, &adc_characteristics, sizeof(bq76930_adc_characteristics_t), true);
+            bq76930_adc_characteristics_t* adc_characteristics = bq76930_get_adc_characteristics();
+            eBike_queue_ble_message(&response, adc_characteristics, sizeof(bq76930_adc_characteristics_t), true);
         break;
 
 

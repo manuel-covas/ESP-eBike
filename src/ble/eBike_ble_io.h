@@ -43,7 +43,8 @@ typedef struct __attribute__((__packed__)) eBike_authed_command_t {
 eBike_authed_command_t;
 
 
-bool system_stats_stream_enabled;
+bool eBike_ble_system_stats_stream_enabled();
+void eBike_ble_toggle_system_stats_stream(bool enabled);
 
 void eBike_ble_io_recieve(struct gatts_write_evt_param* p);
 

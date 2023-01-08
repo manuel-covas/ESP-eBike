@@ -62,8 +62,8 @@ eBike_err_t eBike_nvs_settings_put(eBike_settings_t* pointer) {
     if (crc != pointer->crc32) {
         eBike_err.eBike_err_type = EBIKE_NVS_SETTINGS_CRC_MISMATCH;
         eBike_err.esp_err = ESP_OK;
-        printf("[NVS] - Expected CRC %04X\n"
-               "        Got CRC %04X\n", crc, pointer->crc32);
+        printf("[NVS] - Expected CRC %04lX\n"
+               "        Got CRC %04lX\n", crc, pointer->crc32);
         return eBike_err;
     }
 

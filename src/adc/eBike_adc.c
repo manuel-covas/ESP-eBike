@@ -2,11 +2,11 @@
 #include <esp_adc_cal.h>
 #include <eBike_err.h>
 
-esp_adc_cal_characteristics_t* adc_characteristics;
+static esp_adc_cal_characteristics_t* adc_characteristics;
 
 eBike_err_t eBike_adc_init() {
     eBike_err_t eBike_err;
-
+    
     EBIKE_HANDLE_ERROR(adc1_config_width(ADC_WIDTH_BIT_12), EBIKE_ADC_INIT_SET_WIDTH_FAIL, eBike_err);
     EBIKE_HANDLE_ERROR(adc1_config_channel_atten(CONFIG_THROTTLE_ADC1_CHANNEL, ADC_ATTEN_DB_11), EBIKE_ADC_INIT_SET_ATTEN_FAIL, eBike_err);
 
@@ -29,7 +29,7 @@ eBike_clean:
     return eBike_err;
 }
 
-void eBike_adc_read_throttle(double* percentage) {
+double eBike_adc_read_throttle() {
 
     uint32_t raw_multisampled = 0;
     
@@ -39,5 +39,5 @@ void eBike_adc_read_throttle(double* percentage) {
     raw_multisampled /= CONFIG_ADC1_MULTISAMPLING_COUNT;
 
     double voltage = ((double) esp_adc_cal_raw_to_voltage(raw_multisampled, adc_characteristics)) / 1000.0;
-    *percentage = 100 * (voltage / 3.3);
+    return 100 * (voltage / 3.3);
 }
