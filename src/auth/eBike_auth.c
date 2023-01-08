@@ -1,10 +1,11 @@
 #include <esp_system.h>
+#include <esp_random.h>
 #include <eBike_err.h>
 #include <eBike_log.h>
 #include <eBike_util.h>
 #include <eBike_ble.h>
 #include <mbedtls/pk.h>
-#include <mbedtls/md_internal.h>
+#include <mbedtls/md.h>
 #include <mbedtls/error.h>
 #include <malloc.h>
 #include <stdbool.h>
@@ -64,7 +65,7 @@ bool eBike_auth_solve_challenge(unsigned char* authed_cmd, size_t authed_cmd_len
     char* mbedtls_error_message = calloc(100, 1);
     char* error_message = calloc(100, 1);
     char* signed_content = calloc(authed_cmd_length + CONFIG_EBIKE_AUTH_CHALLENGE_LENGTH, 1);
-    unsigned char* hash = calloc(hash_info->size, 1);
+    unsigned char* hash = calloc(mbedtls_md_get_size(hash_info), 1);
 
     if (mbedtls_error_message == NULL || error_message == NULL || signed_content == NULL || hash == NULL) {
         error = -1;
@@ -85,7 +86,7 @@ bool eBike_auth_solve_challenge(unsigned char* authed_cmd, size_t authed_cmd_len
         goto challenge_failed;
     }  
 
-    error = mbedtls_pk_verify(&rsa_context, MBEDTLS_MD_NONE, hash, hash_info->size, signature, signature_length);
+    error = mbedtls_pk_verify(&rsa_context, MBEDTLS_MD_NONE, hash, mbedtls_md_get_size(hash_info), signature, signature_length);
 
     if (error != 0) {
         mbedtls_strerror(error, mbedtls_error_message, 99);

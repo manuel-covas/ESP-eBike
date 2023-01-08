@@ -1,6 +1,5 @@
 # Edit following two lines to set component requirements (see docs)
-set(COMPONENT_REQUIRES esp_adc_cal)
-set(COMPONENT_PRIV_REQUIRES bt)
+set(COMPONENT_REQUIRES esp_adc bt nvs_flash driver mbedtls)
 
 set(COMPONENT_SRCS "ESP-eBike.c"
                    "util/eBike_util.c"
